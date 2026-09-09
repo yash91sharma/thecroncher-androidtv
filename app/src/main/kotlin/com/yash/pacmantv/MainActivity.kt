@@ -1,118 +1,136 @@
 package com.yash.pacmantv
 
 import android.app.Activity
+import android.hardware.input.InputManager
 import android.os.Bundle
 import android.util.Log
+import android.view.InputDevice
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.WindowManager
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import com.yash.pacmantv.core.game.Difficulties
-import com.yash.pacmantv.core.game.Direction
-import com.yash.pacmantv.core.game.GamePhase
-import com.yash.pacmantv.core.game.GameState
-import com.yash.pacmantv.core.game.Maze
+import com.yash.pacmantv.core.input.Button
+import com.yash.pacmantv.core.input.InputEvent
+import com.yash.pacmantv.core.input.InputMapper
+import com.yash.pacmantv.core.ports.AudioOut
 import com.yash.pacmantv.core.ports.SeededRng
 import com.yash.pacmantv.core.ports.SilentAudioOut
-import com.yash.pacmantv.core.ports.SettingsStore
-import com.yash.pacmantv.core.theme.ThemeRegistry
-import com.yash.pacmantv.core.ui.GameRenderer
+import com.yash.pacmantv.core.ui.ControllerProbe
+import com.yash.pacmantv.core.ui.GameSettings
+import com.yash.pacmantv.core.ui.ScreenStack
+import com.yash.pacmantv.core.ui.screens.MenuScreen
 
 /**
- * The one and only activity. It owns the surface and the Android-side adapters;
- * everything above it lives in `:core` and knows nothing about Android.
+ * The one and only activity: it owns the surface, the audio device and the input
+ * plumbing, and hands everything else to `:core`, which knows nothing of Android.
  */
-class MainActivity : Activity() {
+class MainActivity : Activity(), InputManager.InputDeviceListener {
 
     private lateinit var surface: GameSurfaceView
-    private lateinit var settings: SettingsStore
-    private lateinit var game: GameState
-    private var audio: AndroidAudioOut? = null
+    private lateinit var settings: GameSettings
+    private lateinit var stack: ScreenStack
+
+    private val probe = ControllerProbe()
+    private val mapper = InputMapper()
+    private lateinit var adapter: AndroidInputAdapter
+
+    private var audioDevice: AndroidAudioOut? = null
+    private val audio: AudioOut get() = audioDevice ?: SilentAudioOut
+
+    private var inputManager: InputManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        settings = AndroidSettingsStore(this)
-        audio = runCatching { AndroidAudioOut() }.getOrNull()
 
-        game = newGame()
+        settings = GameSettings(AndroidSettingsStore(this))
+        audioDevice = runCatching { AndroidAudioOut() }
+            .onFailure { Log.w(GameSurfaceView.TAG, "no audio available", it) }
+            .getOrNull()
+        audio.setEnabled(settings.soundEnabled)
+
+        stack = ScreenStack(newMenuScreen())
+        stack.onExitRequested = { finishAndRemoveTask() }
+
+        adapter = AndroidInputAdapter(mapper, probe) { stack.handle(it) }
 
         surface = GameSurfaceView(
             context = this,
-            onTick = { game.tick() },
-            onRender = { ctx -> GameRenderer.render(ctx.gfx, ctx.theme, game, ctx.tick) },
+            onTick = { stack.update(it) },
+            onRender = { ctx -> stack.render(ctx.gfx, ctx.theme, ctx.tick) },
         )
-        surface.theme = ThemeRegistry.byIdOrDefault(settings.getString(KEY_THEME, ""))
+        surface.theme = settings.theme
         setContentView(surface)
         surface.requestFocus()
+
+        inputManager = (getSystemService(INPUT_SERVICE) as? InputManager)?.also {
+            it.registerInputDeviceListener(this, null)
+        }
 
         goFullscreen()
     }
 
-    private fun newGame(): GameState = GameState(
-        maze = Maze.loadClassic(),
-        difficulty = Difficulties.byIdOrDefault(settings.getString(KEY_DIFFICULTY, "")),
+    private fun newMenuScreen() = MenuScreen(
+        settings = settings,
+        audio = audio,
         rng = SeededRng(System.nanoTime()),
-        audio = if (settings.getBoolean(KEY_SOUND, true)) audio ?: SilentAudioOut else SilentAudioOut,
-    ).also {
-        it.scores.highScore = settings.getInt(KEY_HIGH_SCORE, 0)
-        it.startNewGame()
+        onThemeChanged = { surface.theme = settings.theme },
+        probe = probe,
+    )
+
+    // ---------------------------------------------------------------- input --
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean =
+        adapter.onKey(event) || super.onKeyDown(keyCode, event)
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean =
+        adapter.onKey(event) || super.onKeyUp(keyCode, event)
+
+    override fun onGenericMotionEvent(event: MotionEvent): Boolean =
+        adapter.onMotion(event) || super.onGenericMotionEvent(event)
+
+    // ----------------------------------------------- controller connection --
+
+    override fun onInputDeviceAdded(deviceId: Int) {
+        Log.i(GameSurfaceView.TAG, "controller connected: ${InputDevice.getDevice(deviceId)?.name}")
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        when (keyCode) {
-            KeyEvent.KEYCODE_DPAD_UP -> game.requestDirection(Direction.UP)
-            KeyEvent.KEYCODE_DPAD_DOWN -> game.requestDirection(Direction.DOWN)
-            KeyEvent.KEYCODE_DPAD_LEFT -> game.requestDirection(Direction.LEFT)
-            KeyEvent.KEYCODE_DPAD_RIGHT -> game.requestDirection(Direction.RIGHT)
+    override fun onInputDeviceChanged(deviceId: Int) = Unit
 
-            KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER ->
-                if (game.phase == GamePhase.GAME_OVER) restart()
-
-            // Phase 4 scaffolding: cycle themes until the real settings screen lands.
-            KeyEvent.KEYCODE_BUTTON_X, KeyEvent.KEYCODE_MENU -> cycleTheme()
-
-            else -> return super.onKeyDown(keyCode, event)
-        }
-        return true
+    override fun onInputDeviceRemoved(deviceId: Int) {
+        // Losing the pad mid-game would otherwise leave Pac-Man running into a wall
+        // with nobody driving. Drop any held direction and pause.
+        Log.i(GameSurfaceView.TAG, "controller disconnected")
+        mapper.reset()
+        stack.handle(InputEvent.Press(Button.PAUSE))
     }
 
-    private fun restart() {
-        settings.putInt(KEY_HIGH_SCORE, game.highScore)
-        game = newGame()
-    }
-
-    private fun cycleTheme() {
-        val themes = ThemeRegistry.all
-        val next = themes[(themes.indexOf(surface.theme) + 1) % themes.size]
-        surface.theme = next
-        settings.putString(KEY_THEME, next.id)
-        Log.i(GameSurfaceView.TAG, "theme -> ${next.id}")
-    }
+    // ------------------------------------------------------------ lifecycle --
 
     override fun onResume() {
         super.onResume()
         surface.start()
     }
 
-    override fun onDestroy() {
-        audio?.release()
-        audio = null
-        super.onDestroy()
-    }
-
     override fun onPause() {
         surface.stop()
-        audio?.stopAll()
-        settings.putInt(KEY_HIGH_SCORE, game.highScore)
+        audio.stopAll()
         super.onPause()
+    }
+
+    override fun onDestroy() {
+        inputManager?.unregisterInputDeviceListener(this)
+        audioDevice?.release()
+        audioDevice = null
+        super.onDestroy()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        // Android puts the system bars back whenever focus returns.
+        // Android restores the system bars whenever focus returns.
         if (hasFocus) goFullscreen()
     }
 
@@ -123,12 +141,5 @@ class MainActivity : Activity() {
             systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
-    }
-
-    private companion object {
-        const val KEY_THEME = "theme"
-        const val KEY_DIFFICULTY = "difficulty"
-        const val KEY_HIGH_SCORE = "high_score"
-        const val KEY_SOUND = "sound"
     }
 }

@@ -42,12 +42,59 @@ rm -rf .toolchain         # complete uninstall
 
 ## How to customise
 
-*(Filled in as the pieces land — see plan.md Phase 0d for the design.)*
+Everything below is a data change. None of it needs new drawing or navigation code.
 
-| To change… | Edit… |
-|---|---|
-| Colours / look | A `Theme` in `core/.../theme/themes/` |
-| Pac-Man, ghost or pellet art | Drop PNGs into `app/src/main/assets/sprites/<theme>/` |
-| A settings option | One `MenuItem` entry — no drawing code |
-| Add a screen | One `Screen` implementation + a registry entry |
-| The maze | `core/src/main/resources/maze/classic.txt` |
+### Add a theme
+
+1. Copy `core/src/main/kotlin/com/yash/pacmantv/core/theme/themes/Neon.kt`, rename
+   it, and give it a unique `id`.
+2. Add it to the list in `ThemeRegistry.all`.
+
+That is the whole procedure. `ThemeRegistryTest` fails if you leave a colour slot
+unfilled or a sprite unresolved, so a half-finished theme breaks at test time
+rather than on the television. It appears in Settings automatically.
+
+### Change Pac-Man's icon, the ghosts, the pellets
+
+Art is addressed by `SpriteId`, never by file path, so no call site knows where the
+pixels come from. Today `ProceduralSpriteSource` draws them in code. To use your
+own artwork, point a theme's `sprites` at a `SpriteSource` that loads PNGs from
+`app/src/main/assets/sprites/<theme>/`. Nothing else changes.
+
+To change only the *launcher* icon or the TV banner, edit
+`app/src/main/res/drawable/ic_launcher.xml` and `banner.xml`.
+
+### Add a settings option
+
+One entry in the `items` list in `SettingsScreen`:
+
+```kotlin
+MenuItem(
+    "MY OPTION",
+    ItemKind.Choice(
+        options = listOf("OFF", "ON"),
+        getIndex = { if (settings.myOption) 1 else 0 },
+        setIndex = { settings.myOption = it == 1 },
+    ),
+)
+```
+
+`MenuRenderer` draws any menu, and `MenuModel` handles all the navigation.
+
+### Add a screen
+
+Implement `Screen` (`handle`, `render`, optionally `onEnter`/`onExit`/`update`) and
+push it from wherever it belongs with `Transition.Push(MyScreen())`.
+
+### Change the maze
+
+`core/src/main/resources/maze/classic.txt`, where `#` is wall, `.` a dot, `o` an
+energizer, `-` the ghost-house door, `_` the house interior, and a space is empty
+corridor. `MazeTest` flood-fills from Pac-Man's start and fails if any pellet
+becomes unreachable, so you cannot accidentally ship an unplayable maze.
+
+### Retune the difficulty tiers
+
+`Difficulties.EASY` / `NORMAL` / `HARD` in
+`core/src/main/kotlin/com/yash/pacmantv/core/game/Difficulty.kt`. Adding a fourth
+tier is one more entry in `Difficulties.all`.

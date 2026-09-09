@@ -17,9 +17,9 @@
 | 2 | Two-module Gradle skeleton | `[x]` |
 | 3 | Ports, theme system, renderer, game loop | `[x]` |
 | 4 | Gameplay — maze, Pac-Man, ghosts, scoring, audio | `[x]` |
-| 5 | Screens, menus, settings, input | `[ ]` | 
-| 6 | Debug APK | `[ ]` |
-| 7 | Verification — emulator, then the TV | `[ ]` |
+| 5 | Screens, menus, settings, input | `[x]` |
+| 6 | Debug APK | `[x]` |
+| 7 | Verification — emulator, then the TV | `[~]` |
 
 ---
 
@@ -576,18 +576,18 @@ fourth tier, is a data change.
 
 **Tests first — these cover the UI, which the `Gfx` port makes possible:**
 
-- [ ] `InputMapperTest` — `DPAD_LEFT` → LEFT; `AXIS_HAT_X = -1.0` → LEFT; `AXIS_X = -0.9` → LEFT; `AXIS_X = 0.3` → NONE (deadzone); two sources at once don't double-fire; `BUTTON_A`/`DPAD_CENTER`/`ENTER` → CONFIRM; `BUTTON_B`/`BACK` → BACK; `BUTTON_START`/`MENU` → PAUSE
-- [ ] `MenuModelTest` — selection wraps top↔bottom; `Choice` items cycle and clamp; each entry dispatches the right `Transition`
-- [ ] `MenuRendererTest` — against `RecordingGfx`: one row per item, highlights the selected index, uses `theme.menu.itemSelected` for it
-- [ ] `ScreenStackTest` — Push/Pop/Replace; `onEnter`/`onExit` fire exactly once each
-- [ ] `SettingsScreenTest` — difficulty and theme persist to `FakeStore`; reload restores them
+- [x] `InputMapperTest` — `DPAD_LEFT` → LEFT; `AXIS_HAT_X = -1.0` → LEFT; `AXIS_X = -0.9` → LEFT; `AXIS_X = 0.3` → NONE (deadzone); two sources at once don't double-fire; `BUTTON_A`/`DPAD_CENTER`/`ENTER` → CONFIRM; `BUTTON_B`/`BACK` → BACK; `BUTTON_START`/`MENU` → PAUSE
+- [x] `MenuModelTest` — selection wraps top↔bottom; `Choice` items cycle and clamp; each entry dispatches the right `Transition`
+- [x] Menu rendering — against `RecordingGfx`: one row per item, highlights the selected index, uses `theme.menu.itemSelected`. Lives in `ScreensTest` rather than a file of its own, since it is only meaningful through a real screen.
+- [x] `ScreenStackTest` — Push/Pop/Replace; `onEnter`/`onExit` fire exactly once each
+- [x] Settings persistence — difficulty, theme and sound write through to the store immediately and survive a reload. In `ScreensTest`. High scores are kept **per difficulty**, so an easy run cannot flatter a hard one.
 
 **Screens** (all `Screen` implementations, drawn through `Gfx` with `Theme` colours):
 
-- [ ] **Main menu** — PLAY / SETTINGS / EXIT, Pac-Man cursor. EXIT calls `finishAndRemoveTask()`
-- [ ] **Settings** — Difficulty (Easy/Normal/Hard), **Theme** (Classic/Neon/Monochrome), Sound (On/Off), **Controller Test**, Back. All five are `MenuItem` data entries
-- [ ] **Controller Test** — live device name, last keycode + symbolic name, all axis values
-- [ ] **Game**, **Pause** (Resume / Restart / Quit to Menu), **Game Over**
+- [x] **Main menu** — PLAY / SETTINGS / EXIT, Pac-Man cursor. EXIT calls `finishAndRemoveTask()`
+- [x] **Settings** — Difficulty (Easy/Normal/Hard), **Theme** (Classic/Neon/Monochrome), Sound (On/Off), **Controller Test**, Back. All five are `MenuItem` data entries
+- [x] **Controller Test** — live device name, last keycode + symbolic name, all axis values
+- [x] **Game**, **Pause** (Resume / Restart / Quit to Menu), **Game Over**
 
 Menu navigation uses an explicit selection index, **not** Android's focus system —
 more predictable for custom-drawn UI, identical across the remote and the gamepad,
@@ -611,17 +611,40 @@ takes. `AndroidInputAdapter` overrides **both** `onKeyDown/onKeyUp` and
 from the joystick to avoid double-processing. The mapping table itself is data in
 `:core` — remapping buttons later is a data edit.
 
-- [ ] `InputManager.InputDeviceListener` auto-pauses with "Controller disconnected"
+- [x] `InputManager.InputDeviceListener` auto-pauses with "Controller disconnected"
       if the pad drops mid-game
-- [ ] Google TV remote D-pad works everywhere (game fully playable without the gamepad)
+- [x] Google TV remote D-pad works everywhere (game fully playable without the gamepad)
 
 > ⚠️ **Prerequisite for the user to confirm:** the Stadia Controller only speaks
 > Bluetooth if Google's **Bluetooth-mode firmware update** has been applied, via
 > `stadia.google.com/controller` in a Chromium browser. If the unit was never
 > updated it is USB-only and won't pair. Doesn't block development either way.
 
+> **Phase 5 notes.**
+> - `Transition.PopToRoot` was added during implementation. "Quit to menu" has to
+>   close both the pause overlay and the game beneath it, which a single `Pop`
+>   cannot express; the first attempt hacked around it with a deferred flag and was
+>   replaced.
+> - `MenuRenderer` originally always cleared the screen, which blanked the frozen
+>   game behind the pause overlay. It now takes `clearBackground`, and a test
+>   asserts the maze is still drawn underneath.
+> - There is no separate Game Over screen: `GameScreen` renders the message and
+>   accepts confirm to start again, which keeps the game's own state in one place.
+> - The Controller Test screen deliberately does *not* exit on a single B press —
+>   the point is to see every button, including B, so it needs two.
+
+> - The emulator's 4K AVD is memory-hungry and died mid-session once. The 1080p
+>   AVD is the one to use for day-to-day checks; boot `tv4k` only to re-verify the
+>   x7 scale path.
+> - The pause overlay's first scanline dim left alternate lines fully bright, so
+>   the menu text fought the maze behind it. A solid panel now sits behind the
+>   menu block, with the scanlines kept for everything outside it.
+> - Note for testing: on the title screen B is bound to EXIT (as the footer says).
+>   A stray B press there quits the app — which is correct, but easy to trip over
+>   when driving the menus with `adb shell input`.
+
 **Phase 5 gate:**
-- [ ] UI + input suites green against `RecordingGfx`
+- [x] UI + input suites green against `RecordingGfx`
 
 ---
 
@@ -633,7 +656,7 @@ source env.sh
 ./gradlew assembleDebug   # -> app/build/outputs/apk/debug/app-debug.apk
 ```
 
-- [ ] `app-debug.apk` produced (~2–3 MB)
+- [x] `app-debug.apk` produced (2.1 MB)
 
 **On "unsigned or debug":** Android's package manager **rejects genuinely unsigned
 APKs** — they cannot be installed at all. The right artifact is the
@@ -665,18 +688,18 @@ adb shell dumpsys gfxinfo com.yash.pacmantv  # frame timing
 adb logcat -s PacmanTV
 ```
 
-- [ ] All `:core` unit tests green; instrumented smoke test passes
+- [x] All `:core` unit tests green; instrumented smoke test passes
 - [ ] App appears with its banner on the TV launcher (leanback intent works)
-- [ ] Menu renders fullscreen, no system bars, correct 16-bit look
-- [ ] D-pad navigates menu; difficulty **and theme** persist across an app restart
-- [ ] **Switching theme visibly restyles the whole game** — the modularity, proven end to end
-- [ ] Maze, all 244 pellets, 4 ghosts render at the right scale
-- [ ] Pac-Man moves, eats, dies, respawns; ghosts chase and scatter distinctly
+- [x] Menu renders fullscreen, no system bars, correct 16-bit look
+- [x] D-pad navigates menu; difficulty **and theme** persist across an app restart
+- [x] **Switching theme visibly restyles the whole game** — the modularity, proven end to end
+- [x] Maze, all 244 pellets, 4 ghosts render at the right scale
+- [x] Pac-Man moves, eats, dies, respawns; ghosts chase and scatter distinctly
 - [ ] Energizer → fright → ghost eaten → eyes return home
 - [ ] Level advances on clearing the maze
 - [ ] Each difficulty visibly changes speed, lives, fright duration
-- [ ] Sustained 60 fps
-- [ ] EXIT actually closes the app
+- [x] Sustained 60 fps
+- [x] EXIT actually closes the app
 - [ ] ✋ **Checkpoint with user** before sideloading to the TV
 
 *Emulator limits:* no Bluetooth gamepad emulation, and it renders at 1080p. Keycode
@@ -725,13 +748,13 @@ du -sh .toolchain                                 # the entire footprint
 
 ## Deliverables
 
-- [ ] `CLAUDE.md` — git, TDD, module-boundary and extensibility rules
-- [ ] `plan.md` — this document
-- [ ] `env.sh` + `scripts/setup.sh` — reproducible, idempotent, sealed bootstrap
-- [ ] `:core` — pure-Kotlin game, theme system and screens, with a fast JVM test suite
-- [ ] `:app` — thin Android adapters
-- [ ] `app-debug.apk` — installable
-- [ ] `README.md` — activate, build, test, run on emulator, sideload to TV, delete
+- [x] `CLAUDE.md` — git, TDD, module-boundary and extensibility rules
+- [x] `plan.md` — this document
+- [x] `env.sh` + `scripts/setup.sh` — reproducible, idempotent, sealed bootstrap
+- [x] `:core` — pure-Kotlin game, theme system and screens, with a fast JVM test suite
+- [x] `:app` — thin Android adapters
+- [x] `app-debug.apk` — installable
+- [x] `README.md` — activate, build, test, run on emulator, sideload to TV, delete
       everything — **plus a "How to customise" section**: add a theme, swap sprite
       art, add a settings option, add a screen, add a maze
 
