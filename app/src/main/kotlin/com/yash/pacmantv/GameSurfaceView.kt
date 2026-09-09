@@ -142,8 +142,12 @@ class GameSurfaceView(
             fps = framesThisSecond
             framesThisSecond = 0
             fpsWindowStart = now
+            // Occasional, so the log stays readable but the frame rate is provable.
+            if (++fpsReports % 5 == 0) Log.i(TAG, "fps=$fps tick=${loop.totalTicks}")
         }
     }
+
+    private var fpsReports = 0
 
     companion object {
         const val TAG = "PacmanTV"

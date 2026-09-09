@@ -31,6 +31,12 @@ enum class SpriteId(val frameCount: Int) {
     EYES_UP(1),
     EYES_DOWN(1),
 
+    /** Drawn over the eyes, so sclera and pupil can be different colours. */
+    PUPILS_RIGHT(1),
+    PUPILS_LEFT(1),
+    PUPILS_UP(1),
+    PUPILS_DOWN(1),
+
     PELLET(1),
     ENERGIZER(1),
 

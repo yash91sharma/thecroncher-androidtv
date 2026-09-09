@@ -49,6 +49,11 @@ object ProceduralSpriteSource : SpriteSource {
         SpriteId.EYES_UP -> eyesOnly(dx = 0, dy = -1)
         SpriteId.EYES_DOWN -> eyesOnly(dx = 0, dy = 1)
 
+        SpriteId.PUPILS_RIGHT -> pupilsOnly(dx = 1, dy = 0)
+        SpriteId.PUPILS_LEFT -> pupilsOnly(dx = -1, dy = 0)
+        SpriteId.PUPILS_UP -> pupilsOnly(dx = 0, dy = -1)
+        SpriteId.PUPILS_DOWN -> pupilsOnly(dx = 0, dy = 1)
+
         SpriteId.PELLET -> disc(SMALL, radius = 1.2)
         SpriteId.ENERGIZER -> disc(SMALL, radius = 3.4)
 
@@ -214,6 +219,22 @@ object ProceduralSpriteSource : SpriteSource {
             for (y in 0 until size) {
                 for (x in 0 until size) {
                     if (hypot(x - eyeX, y - eyeY) <= 2.2) pixels[y * size + x] = WHITE
+                }
+            }
+        }
+        return Sprite(size, size, pixels)
+    }
+
+    /** Just the pupils, offset the way the ghost is looking. */
+    private fun pupilsOnly(dx: Int, dy: Int): Sprite {
+        val size = ENTITY
+        val pixels = IntArray(size * size)
+        for (side in intArrayOf(-1, 1)) {
+            val cx = (size - 1) / 2.0 + side * 3.0 + dx * 1.0
+            val cy = 6.0 + dy * 1.2
+            for (y in 0 until size) {
+                for (x in 0 until size) {
+                    if (hypot(x - cx, y - cy) <= 1.2) pixels[y * size + x] = WHITE
                 }
             }
         }

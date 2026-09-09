@@ -1,0 +1,48 @@
+package com.yash.pacmantv.core.ui
+
+import com.yash.pacmantv.core.game.Maze
+import com.yash.pacmantv.core.game.VIRTUAL_HEIGHT
+import com.yash.pacmantv.core.game.VIRTUAL_WIDTH
+
+/**
+ * Every fixed screen position in one place, so moving a piece of the HUD is an
+ * edit here rather than a hunt through the drawing code.
+ *
+ * The arcade screen is 36 tiles tall: three rows of score at the top, the 31-row
+ * maze, then two rows for lives and fruit.
+ */
+object Layout {
+
+    const val SCREEN_WIDTH = VIRTUAL_WIDTH
+    const val SCREEN_HEIGHT = VIRTUAL_HEIGHT
+
+    const val TILE = Maze.TILE_SIZE
+
+    /** The maze starts three tile-rows down, leaving room for the score. */
+    const val MAZE_ORIGIN_X = 0
+    const val MAZE_ORIGIN_Y = 3 * TILE
+
+    const val MAZE_PIXEL_HEIGHT = 31 * TILE
+
+    // --- top HUD ---
+    const val SCORE_LABEL_Y = 1
+    const val SCORE_VALUE_Y = 9
+    const val SCORE_LEFT_X = 16
+    const val HIGH_SCORE_CENTRE_X = SCREEN_WIDTH / 2
+
+    // --- bottom HUD ---
+    const val LIVES_Y = MAZE_ORIGIN_Y + MAZE_PIXEL_HEIGHT + 2
+    const val LIVES_LEFT_X = 12
+    const val LIVES_SPACING = 16
+    const val FRUIT_RIGHT_X = SCREEN_WIDTH - 12
+
+    // --- centre messages ---
+    const val MESSAGE_CENTRE_X = SCREEN_WIDTH / 2
+    const val READY_Y = MAZE_ORIGIN_Y + 20 * TILE - 3
+    const val GAME_OVER_Y = READY_Y
+
+    /** Converts a maze pixel coordinate to a screen coordinate. */
+    fun mazeToScreenY(mazePixelY: Int) = MAZE_ORIGIN_Y + mazePixelY
+
+    fun mazeToScreenX(mazePixelX: Int) = MAZE_ORIGIN_X + mazePixelX
+}

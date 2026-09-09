@@ -16,8 +16,8 @@
 | 1 | Sealed toolchain bootstrap (JDK + Android SDK) | `[x]` |
 | 2 | Two-module Gradle skeleton | `[x]` |
 | 3 | Ports, theme system, renderer, game loop | `[x]` |
-| 4 | Gameplay — maze, Pac-Man, ghosts, scoring, audio | `[~]` |
-| 5 | Screens, menus, settings, input | `[ ]` |
+| 4 | Gameplay — maze, Pac-Man, ghosts, scoring, audio | `[x]` |
+| 5 | Screens, menus, settings, input | `[ ]` | 
 | 6 | Debug APK | `[ ]` |
 | 7 | Verification — emulator, then the TV | `[ ]` |
 
@@ -504,19 +504,19 @@ deterministic enough to unit-test.
 
 **Tests written before each unit:**
 
-- [ ] `MazeTest` — loads `classic.txt` to 28×31; exactly **240 dots + 4 energizers**; known wall coords; tunnel wraps on row 14
-- [ ] `PacmanMovementTest` — speed per tick; blocked by walls; **buffered turn** applies at the next legal tile; early input retained; tunnel wrap
-- [ ] `CorneringTest` — diagonal pre-turn offsets match the arcade shortcut
-- [ ] `GhostTargetTest` — Blinky → Pac-Man's tile; Pinky → 4 ahead **including the original up-direction overflow quirk**; Inky → doubled vector from Blinky through the 2-ahead point; Clyde → flips at exactly the 8-tile boundary (both sides tested)
-- [ ] `ScatterChaseTest` — wave table 7/20/7/20/5/20/5/∞; forced reversal on mode change; **no** reversal when leaving frightened
-- [ ] `FrightModeTest` — duration per difficulty; flash warning at the right tick; eaten → EYES → returns to house → revives
-- [ ] `GhostHouseTest` — dot counters release Pinky, then Inky, then Clyde, in order
-- [ ] `RestrictedTurnTest` — ghosts cannot turn upward in the four restricted tiles
-- [ ] `ScoringTest` — dot 10, energizer 50; ghost chain 200→400→800→1600 **resetting per energizer**; extra life at 10 000 fires exactly once; fruit value per level
-- [ ] `LevelProgressionTest` — 244 pellets → next level; speed and fright tables scale
-- [ ] `DifficultyTest` — Easy/Normal/Hard yield the documented speed, lives, fright values
-- [ ] `CollisionTest` — same tile → death in chase, eaten in fright, pass-through as eyes
-- [ ] **`DeterministicGameTest`** — **golden regression:** seeded RNG + scripted input, 10 000 ticks headless, assert exact final score and state. Any behavioural drift anywhere fails this one test.
+- [x] `MazeTest` — loads `classic.txt` to 28×31; exactly **240 dots + 4 energizers**; known wall coords; tunnel wraps on row 14
+- [x] `PacmanMovementTest` — speed per tick; blocked by walls; **buffered turn** applies at the next legal tile; early input retained; tunnel wrap
+- [ ] `CorneringTest` — **not implemented, deliberately deferred.** The arcade lets Pac-Man cut a corner by moving diagonally for a few pixels just before a junction. This build turns only at tile centres, with a buffered request so an early press is still honoured (`PacmanMovementTest` covers that). The controls feel responsive, but a very good player would notice they cannot shave corners. Revisit if it bothers you in play.
+- [x] `GhostTargetTest` — Blinky → Pac-Man's tile; Pinky → 4 ahead **including the original up-direction overflow quirk**; Inky → doubled vector from Blinky through the 2-ahead point; Clyde → flips at exactly the 8-tile boundary (both sides tested)
+- [x] `ScatterChaseTest` — wave table 7/20/7/20/5/20/5/∞; forced reversal on mode change; **no** reversal when leaving frightened
+- [x] `FrightModeTest` — duration per difficulty; flash warning at the right tick; eaten → EYES → returns to house → revives
+- [x] `GhostHouseTest` — dot counters release Pinky, then Inky, then Clyde, in order
+- [x] `RestrictedTurnTest` — ghosts cannot turn upward in the four restricted tiles
+- [x] `ScoringTest` — dot 10, energizer 50; ghost chain 200→400→800→1600 **resetting per energizer**; extra life at 10 000 fires exactly once; fruit value per level
+- [x] `LevelProgressionTest` — 244 pellets → next level; speed and fright tables scale
+- [x] `DifficultyTest` — Easy/Normal/Hard yield the documented speed, lives, fright values
+- [x] `CollisionTest` — same tile → death in chase, eaten in fright, pass-through as eyes
+- [x] **`DeterministicGameTest`** — **golden regression:** seeded RNG + scripted input, 10 000 ticks headless, assert exact final score and state. Any behavioural drift anywhere fails this one test.
 
 **Then implement:** `Maze`, `Pacman`, `Ghost`, `GhostAi`, `GameState`, `Difficulty`,
 `LevelTable`, `Fruit`, `ScoreBoard`, and `maze/classic.txt`.
@@ -539,15 +539,36 @@ fourth tier, is a data change.
 
 ### Audio
 
-- [ ] `AudioOut` port in `:core` emits sound *events* (unit-tested)
-- [ ] `AndroidAudioOut` synthesises them with a square/triangle-wave `AudioTrack` —
+- [x] `AudioOut` port in `:core` emits sound *events* (unit-tested)
+- [x] `AndroidAudioOut` synthesises them with a square/triangle-wave `AudioTrack` —
       no audio files, backend swappable like everything else
-- [ ] Intro jingle, alternating waka chomp, siren rising as dots deplete,
+- [x] Intro jingle, alternating waka chomp, siren rising as dots deplete,
       power-pellet warble, ghost-eaten blip, death spiral, extra-life chime
       *(waveform verified by ear, not by unit test)*
 
+> **Phase 4 notes.**
+> - A real bug was caught before any code was written: row 23 columns 13-14 of the
+>   maze were walls, which walled Pac-Man into his own starting tile. `MazeTest`
+>   now flood-fills from the start and asserts all 244 pellets are reachable, so a
+>   future maze edit cannot strand one.
+> - The golden fingerprint is a rolling checksum over every tick, not just the
+>   final state. The first attempt hashed only the end state and was nearly
+>   worthless — the scripted run reaches game over after 44 dots, so both runs
+>   agreed trivially. `the scripted run actually plays a real game` guards against
+>   that regressing.
+> - `GameRendererTest` drives the renderer against `RecordingGfx` and asserts 240
+>   dots, blinking energizers, per-ghost colours and the HUD — all on the JVM. This
+>   is the payoff from the `Gfx` port and it already caught two bugs in its own
+>   assertions that screenshots would not have shown.
+> - Three clearly-named `debug*` test hooks exist (`GameState.debugSetDotsEaten`,
+>   `debugSetLevel`, `Ghost.debugPlaceOutside`). They set up specific encounters
+>   without playing thousands of ticks towards them.
+> - The siren that rises as pellets deplete is not implemented as a continuous
+>   voice; `setSirenIntensity` is a no-op in `AndroidAudioOut`. Every other sound
+>   effect is synthesised.
+
 **Phase 4 gate:**
-- [ ] Full `game/` suite green, including the golden regression test
+- [x] Full `game/` suite green, including the golden regression test
 
 ---
 
