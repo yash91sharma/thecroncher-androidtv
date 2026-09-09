@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+
+    <path
+        android:fillColor="#000000"
+        android:pathData="M0,0h320v180h-320z" />
+
+    <!-- Pac-Man: circle at (70,90) r=45 with a 60-degree wedge cut to the right. -->
+    <path
+        android:fillColor="#FFD800"
+        android:pathData="M70,90 L108.97,67.5 A45,45 0 1 0 108.97,112.5 Z" />
+
+    <!-- A trail of pellets. -->
+    <path
+        android:fillColor="#FFB8AE"
+        android:pathData="M141,85h12v12h-12z M181,85h12v12h-12z M221,85h12v12h-12z M261,85h12v12h-12z" />
+</vector>

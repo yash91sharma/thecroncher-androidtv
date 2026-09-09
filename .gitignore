@@ -32,3 +32,9 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Sealed project-local toolchain (JDK, Android SDK, emulator, AVDs, gradle cache)
+.toolchain/
+
+# macOS
+.DS_Store
