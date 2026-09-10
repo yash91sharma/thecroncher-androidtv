@@ -77,8 +77,9 @@ class PauseScreen(private val game: GameScreen) : Screen {
     }
 
     private companion object {
-        const val PANEL_X = 16
-        const val PANEL_Y = 36
-        const val PANEL_HEIGHT = 168
+        /** A panel just big enough for the title and the three items. */
+        const val PANEL_X = 84
+        const val PANEL_Y = 18
+        const val PANEL_HEIGHT = 152
     }
 }

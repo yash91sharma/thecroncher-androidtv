@@ -22,25 +22,30 @@ class GhostRoutingTest {
         allowReverse: Boolean = false,
     ) = GhostAi.chooseDirection(maze, from, facing, target, allowReverse, ghostsMayEnterHouse = false)
 
+    /** The long open corridor just inside the bottom wall. */
+    private val BOTTOM_ROW = (maze.height - 2 downTo 0).first { y ->
+        (1 until maze.width - 1).all { maze.isWalkable(it, y) }
+    }
+
     @Test
     fun `it heads towards the target`() {
-        // In the long corridor on row 23, a target to the west means going west.
-        val dir = choose(from = TilePos(10, 20), facing = Direction.LEFT, target = TilePos(1, 20))
+        // In the long corridor along the bottom, a target west means going west.
+        val dir = choose(from = TilePos(10, BOTTOM_ROW), facing = Direction.LEFT, target = TilePos(1, BOTTOM_ROW))
         assertEquals(Direction.LEFT, dir)
     }
 
     @Test
     fun `it never reverses unless explicitly told it may`() {
-        val dir = choose(from = TilePos(10, 20), facing = Direction.LEFT, target = TilePos(20, 20))
+        val dir = choose(from = TilePos(10, BOTTOM_ROW), facing = Direction.LEFT, target = TilePos(20, BOTTOM_ROW))
         assertNotEquals("reversing is forbidden", Direction.RIGHT, dir)
     }
 
     @Test
     fun `a forced reversal is obeyed when allowed`() {
         val dir = choose(
-            from = TilePos(10, 20),
+            from = TilePos(10, BOTTOM_ROW),
             facing = Direction.LEFT,
-            target = TilePos(20, 20),
+            target = TilePos(20, BOTTOM_ROW),
             allowReverse = true,
         )
         assertEquals(Direction.RIGHT, dir)

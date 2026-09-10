@@ -68,12 +68,12 @@ class MenuScreen(
     /** A big wordmark with the whole cast running across underneath it. */
     private fun drawTitleArt(g: Gfx, theme: Theme, tick: Long) {
         val cx = Layout.SCREEN_WIDTH / 2
-        g.drawText(Strings.TITLE, cx, 14, theme.menu.title, Align.CENTER, TITLE_SMALL_SCALE)
-        g.drawText(Strings.TITLE_SECOND_LINE, cx, 32, theme.menu.title, Align.CENTER, TITLE_SCALE)
-        g.drawText(Strings.TAGLINE, cx, 60, theme.menu.footer, Align.CENTER)
+        g.drawText(Strings.TITLE, cx, Layout.MARGIN + 6, theme.menu.title, Align.CENTER, TITLE_SMALL_SCALE)
+        g.drawText(Strings.TITLE_SECOND_LINE, cx, 28, theme.menu.title, Align.CENTER, TITLE_SCALE)
+        g.drawText(Strings.TAGLINE, cx, 54, theme.menu.footer, Align.CENTER)
 
         // The cat runs a lap of the screen, pursued as ever.
-        val period = 320
+        val period = Layout.SCREEN_WIDTH + 64
         val x = ((tick / 2) % period).toInt() - 32
         val y = 84
         val frame = ((tick / 6) % 2).toInt()

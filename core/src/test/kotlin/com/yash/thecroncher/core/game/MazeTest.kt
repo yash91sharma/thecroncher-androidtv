@@ -15,16 +15,16 @@ class MazeTest {
     private val maze = Maze.loadDefault()
 
     @Test
-    fun `the maze is 46 by 22 tiles`() {
+    fun `the maze is 46 by 21 tiles`() {
         assertEquals(46, maze.width)
-        assertEquals(22, maze.height)
+        assertEquals(21, maze.height)
     }
 
     @Test
-    fun `there are exactly 368 dots and 4 energizers`() {
-        assertEquals(368, maze.dotCount)
+    fun `there are exactly 360 dots and 4 energizers`() {
+        assertEquals(360, maze.dotCount)
         assertEquals(4, maze.energizerCount)
-        assertEquals(372, maze.totalPellets)
+        assertEquals(364, maze.totalPellets)
     }
 
     @Test

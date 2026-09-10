@@ -11,17 +11,21 @@ import com.yash.thecroncher.core.theme.Theme
  */
 object MenuRenderer {
 
-    private const val TITLE_Y = 44
+    private const val TITLE_Y = 34
     private const val TITLE_SCALE = 2
     private const val ITEM_SPACING = 20
-    private const val LABEL_X = 48
-    private const val CURSOR_X = 30
 
-    /** Values are right-aligned close to the edge, so a long label cannot collide. */
-    private const val VALUE_X = Layout.SCREEN_WIDTH - 24
+    /**
+     * The items sit in a column down the middle rather than spanning the whole
+     * width: on a 384-pixel-wide screen a row running edge to edge leaves the
+     * label and its value too far apart to read as one row.
+     */
+    private const val LABEL_X = 116
+    private const val VALUE_X = Layout.SCREEN_WIDTH - LABEL_X
+    private const val CURSOR_X = LABEL_X - 18
 
     /** The item block is centred on this line, whatever the number of items. */
-    private const val ITEMS_CENTRE_Y = 156
+    private const val ITEMS_CENTRE_Y = 132
 
     fun render(
         g: Gfx,
@@ -61,18 +65,23 @@ object MenuRenderer {
                     theme.sprites.sprite(SpriteId.CAT, frame), CURSOR_X, y + 3,
                 )
                 // A thin rule under the row it is sitting on, so the selection is
-                // unmistakable across a room, cat or no cat.
-                g.fillRect(LABEL_X, y + Font.GLYPH_HEIGHT + 1, RULE_WIDTH, 1, theme.menu.cursor)
+                // unmistakable across a room, cat or no cat. It stops at the row's
+                // own content: running it to the value column under a bare "PLAY"
+                // just draws a long line to nowhere.
+                val ruleEnd =
+                    if (model.valueOf(index) != null) VALUE_X
+                    else LABEL_X + Font.measure(item.label) + 6
+                g.fillRect(LABEL_X, y + Font.GLYPH_HEIGHT + 1, ruleEnd - LABEL_X, 1, theme.menu.cursor)
             }
         }
 
         footer?.let {
             g.drawText(
-                it, Layout.SCREEN_WIDTH / 2, Layout.SCREEN_HEIGHT - 24,
+                it, Layout.SCREEN_WIDTH / 2,
+                Layout.SCREEN_HEIGHT - Layout.MARGIN - Font.GLYPH_HEIGHT,
                 theme.menu.footer, Align.CENTER,
             )
         }
     }
 
-    private const val RULE_WIDTH = VALUE_X - LABEL_X
 }
