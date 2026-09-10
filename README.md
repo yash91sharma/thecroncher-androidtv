@@ -42,6 +42,113 @@ directory, and your global `PATH` is untouched.
 rm -rf .toolchain         # complete uninstall
 ```
 
+## Deploy to TV
+
+The Google TV Streamer's USB-C port is power only, so the APK goes over the
+network. The pairing and authorisation below are one-time; after that, shipping a
+new build is three commands.
+
+The Mac and the TV must be on the same network, and `source env.sh` is required in
+every new shell.
+
+### 1. Pair the Stadia controller
+
+Pair it to the **TV**, not to the Mac.
+
+If the controller has never been switched out of Wi-Fi mode: open
+`stadia.google.com/controller` in Chrome (the tool uses WebHID, so Safari will not
+do), connect the pad with a USB-C **data** cable — a charge-only cable is not
+detected, and that is nearly always the reason the page sees nothing — and follow
+the steps. The flash is one-way: afterwards it is a plain Bluetooth gamepad.
+
+Then:
+
+1. Hold **Stadia + Y** for two seconds. The status light pulses orange.
+2. On the TV, **Settings → Remotes & Accessories → Pair remote or accessory**.
+3. Select `Stadia Controller` when it appears. The light goes solid white.
+
+If it never shows up, hold the **Stadia** button for ten seconds to power the pad
+right down and start again.
+
+### 2. Enable ADB on the TV
+
+1. **Settings → System → About**, then press **Android TV OS build** seven times.
+2. **Settings → System → Developer options → USB debugging** (labelled **ADB
+   debugging** on some builds — either one also enables ADB over the network).
+3. **Settings → Network & Internet → [your network]** and note the **IP address**.
+   It survives until the TV reboots unless the router reserves it.
+
+### 3. Connect
+
+```bash
+source env.sh
+adb connect 192.168.1.42:5555     # the TV's IP
+```
+
+The TV shows *"Allow USB debugging?"*. Tick **Always allow from this computer** and
+accept — with the TV remote; the Stadia pad does not always drive system dialogs.
+`adb devices` should then report the address as `device`. `unauthorized` means the
+dialog is still waiting; `offline` is in the troubleshooting table below.
+
+### 4. Install
+
+```bash
+./scripts/install.sh --run
+```
+
+Builds, installs, launches, and runs the leak check. By hand it is
+`adb install -r app/build/outputs/apk/debug/app-debug.apk` — `-r` replaces in
+place, which is how updates keep the saved high score.
+
+### 5. Play
+
+The game declares `LEANBACK_LAUNCHER`, so it lands on the Google TV home screen
+under **Your apps** (**Apps → See all apps** if the row has not refreshed).
+
+| Input | Does |
+|---|---|
+| D-pad or left stick | Move |
+| **A**, Select, Enter | Confirm |
+| **B**, Back | Back |
+| **Start**, Menu | Pause |
+
+**Settings → Controller Test** shows live D-pad, hat, both sticks, triggers,
+button names and the detected device name — the first place to look if a pad
+reports something unexpected.
+
+### Unplugging
+
+Nothing depends on the Mac once the install finishes. Disconnect adb, turn USB
+debugging back off — network ADB is not worth leaving open on a LAN — and take
+the TV off the internet if you like: the manifest declares no permissions, so the
+game never reaches for it. Settings and the high score live in SharedPreferences
+(`the-croncher`) and survive reboots and reinstalls, but not an uninstall.
+
+### Updating later
+
+```bash
+source env.sh
+adb connect 192.168.1.42:5555
+./scripts/install.sh --run
+```
+
+The Mac's key stays authorised, so the TV does not prompt again.
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `connection refused` | The TV is not listening. Toggle USB debugging off and on. If the build only offers **Wireless debugging** with a pairing code, `adb pair <ip>:<pairing-port>` first, then `adb connect <ip>:<debug-port>` — the two ports differ. |
+| `offline` | `adb disconnect && adb kill-server && adb connect <ip>:5555` |
+| `unauthorized` | Reconnect and watch the TV for the dialog. If it never appears, **Developer options → Revoke USB debugging authorizations**, then reconnect. |
+| `INSTALL_FAILED_UPDATE_INCOMPATIBLE` | An older copy signed with a different key. `adb uninstall com.yash.thecroncher`, then install again — this loses the high score. |
+| Not on the home screen | `adb shell am start -n com.yash.thecroncher/.MainActivity` launches it directly. |
+| Logs while playing | `adb logcat --pid=$(adb shell pidof -s com.yash.thecroncher)` |
+
+### Disconnect
+
+`adb disconnect`
+
 ## Layout
 
 | Module | What |
