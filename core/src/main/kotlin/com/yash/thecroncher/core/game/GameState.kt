@@ -190,6 +190,7 @@ class GameState(
         frightTicksRemaining--
         if (frightTicksRemaining == 0) {
             scores.endFright()
+            croncher.speed = speedOf(spec.croncherSpeed)
             for (g in ghosts) g.unfrighten(scheduleMode)
         }
     }
@@ -235,6 +236,7 @@ class GameState(
             return
         }
         frightTicksRemaining = ticks
+        croncher.speed = speedOf(spec.croncherFrightSpeed)
         for (g in ghosts) g.frighten()
     }
 

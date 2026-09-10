@@ -168,13 +168,14 @@ class DeterministicGameTest {
     }
 
     private companion object {
-        // Re-recorded 2026-09-09, twice: once after actors were taught to turn at
+        // Re-recorded 2026-09-09, three times: once after actors were taught to turn at
         // a tile centre they pass over mid-tick rather than one they land exactly
-        // on, and again when the maze was redrawn 48x22 to fill a 16:9 screen.
+        // on, once when the maze was redrawn 48x22 to fill a 16:9 screen, and again
+        // when Croncher was given arcade-accurate post-turn cornering tolerance.
         // Every trajectory in the game changes with either; the guard tests above
         // (it still eats, still dies, nobody ends up inside a wall) are what say
         // the new trajectory is a real game rather than a broken one.
-        const val GOLDEN_10K = -5283474816579366277L
-        const val GOLDEN_30K = -6492158085099323535L
+        const val GOLDEN_10K = 1741107866118339316L
+        const val GOLDEN_30K = -2086711891087191130L
     }
 }

@@ -127,7 +127,11 @@ class GameSurfaceView(
         val surface = holder
         if (!surface.surface.isValid) return
 
-        val canvas: Canvas = surface.lockCanvas() ?: return
+        val canvas: Canvas = try {
+            surface.lockHardwareCanvas()
+        } catch (e: Exception) {
+            surface.lockCanvas()
+        } ?: return
         try {
             onRender(RenderContext(gfx, theme, loop.totalTicks, fps))
             gfx.present(canvas, viewport, theme.background)

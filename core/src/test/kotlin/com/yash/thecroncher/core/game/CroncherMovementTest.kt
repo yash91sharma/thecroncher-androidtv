@@ -66,6 +66,32 @@ class CroncherMovementTest {
         assertEquals("the turn was taken in the wrong tile", junction, turnedAt)
     }
 
+    @Test
+    fun `turns at a T-junction when requested after passing the tile centre`() {
+        val junction = firstJunction(travel = Direction.LEFT, turn = Direction.UP)
+        val p = croncher(tile = junction, facing = Direction.LEFT)
+        // 2 pixels past the tile centre along travel direction:
+        p.x -= 2 * SUBPIXEL
+        p.requestDirection(Direction.UP)
+        p.update()
+
+        assertEquals("should have taken the turn despite being past the centre", Direction.UP, p.direction)
+        assertEquals("should be aligned with the vertical corridor", tileCentreSub(junction.x), p.x)
+    }
+
+    @Test
+    fun `turns at a T-junction when requested at the edge of the junction tile`() {
+        val junction = firstJunction(travel = Direction.LEFT, turn = Direction.UP)
+        val p = croncher(tile = junction, facing = Direction.LEFT)
+        // 4 pixels past the tile centre (far edge of the 8px tile):
+        p.x -= 4 * SUBPIXEL
+        p.requestDirection(Direction.UP)
+        p.update()
+
+        assertEquals("should turn even at the tile edge", Direction.UP, p.direction)
+        assertEquals("should be aligned with the vertical corridor", tileCentreSub(junction.x), p.x)
+    }
+
     /**
      * A tile you can travel through and also turn out of, with a clear run-up
      * behind it: the run-up tiles must *not* offer the same turn, or the croncher

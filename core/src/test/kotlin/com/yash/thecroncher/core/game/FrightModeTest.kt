@@ -130,4 +130,19 @@ class FrightModeTest {
         assertEquals(0, g.frightTicksRemaining)
         assertTrue("no ghost should turn blue", g.ghosts.none { it.mode == GhostMode.FRIGHTENED })
     }
+
+    @Test
+    fun `eating an energizer increases croncher speed to fright speed`() {
+        val g = game(Difficulties.NORMAL)
+        val normalSpeed = speedOf(LevelTable.forLevel(1).croncherSpeed)
+        val frightSpeed = speedOf(LevelTable.forLevel(1).croncherFrightSpeed)
+        assertEquals(normalSpeed, g.croncher.speed)
+
+        g.takeEnergizer()
+        assertEquals(frightSpeed, g.croncher.speed)
+
+        repeat(GameState.TICKS_PER_SECOND * 7) { g.tick() }
+        assertEquals(0, g.frightTicksRemaining)
+        assertEquals(normalSpeed, g.croncher.speed)
+    }
 }

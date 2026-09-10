@@ -79,7 +79,13 @@ class CanvasGfx : Gfx {
     /** Pushes the pixel buffer onto the surface, scaled and letterboxed. */
     fun present(canvas: Canvas, viewport: Viewport, letterboxColor: Int) {
         bitmap.setPixels(buffer, 0, width, 0, 0, width, height)
-        canvas.drawColor(letterboxColor)
+        val coversEntireCanvas = viewport.x == 0 &&
+            viewport.y == 0 &&
+            viewport.width >= canvas.width &&
+            viewport.height >= canvas.height
+        if (!coversEntireCanvas) {
+            canvas.drawColor(letterboxColor)
+        }
         destination.set(
             viewport.x,
             viewport.y,

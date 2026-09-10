@@ -34,7 +34,7 @@ abstract class Actor(protected val maze: Maze) {
             Math.floorMod(y, TILE_SUB) == HALF_TILE_SUB
 
     /** How far past the current tile's centre we are, along [dir]. */
-    private fun overshootAlong(dir: Direction): Int {
+    protected fun overshootAlong(dir: Direction): Int {
         val here = tile()
         return when (dir) {
             Direction.LEFT -> tileCentreSub(here.x) - x
@@ -93,7 +93,7 @@ abstract class Actor(protected val maze: Maze) {
      *
      * Returns true if the direction changed.
      */
-    protected fun tryTurn(desired: Direction): Boolean {
+    protected open fun tryTurn(desired: Direction): Boolean {
         if (desired == direction) return false
 
         if (desired == direction.opposite) {
