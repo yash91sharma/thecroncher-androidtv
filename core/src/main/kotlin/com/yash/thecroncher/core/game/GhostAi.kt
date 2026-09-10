@@ -23,10 +23,10 @@ object GhostAi {
      * rather than a rule with a reason, but it shapes how the game is played.
      */
     val NO_UP_TURN_TILES = listOf(
-        TilePos(12, 11),
-        TilePos(15, 11),
-        TilePos(12, 23),
-        TilePos(15, 23),
+        TilePos(12, 5),
+        TilePos(33, 5),
+        TilePos(12, 17),
+        TilePos(33, 17),
     )
 
     /** Clyde turns tail inside this radius. Compared squared, to avoid a sqrt. */

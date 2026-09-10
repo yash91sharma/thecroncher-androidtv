@@ -25,12 +25,16 @@ class Ghost(
     /** Set when the schedule changes; consumed at the next tile centre. */
     private var reversePending = false
 
-    /** Where in the house this ghost waits. */
+    /**
+     * Where in the house this ghost waits: the middle slot and one either side of
+     * it. Derived from the house rather than written out, so redrawing the maze
+     * moves them with it.
+     */
     private val homeTile: TilePos = when (kind) {
         GhostKind.BLINKY -> Maze.BLINKY_START_TILE
-        GhostKind.PINKY -> TilePos(13, 14)
-        GhostKind.INKY -> TilePos(12, 14)
-        GhostKind.CLYDE -> TilePos(15, 14)
+        GhostKind.PINKY -> Maze.HOUSE_CENTRE_TILE
+        GhostKind.INKY -> TilePos(Maze.HOUSE_CENTRE_TILE.x - 1, Maze.HOUSE_CENTRE_TILE.y)
+        GhostKind.CLYDE -> TilePos(Maze.HOUSE_CENTRE_TILE.x + 2, Maze.HOUSE_CENTRE_TILE.y)
     }
 
     /** Ghosts may use the door and the house; the croncher may not. */

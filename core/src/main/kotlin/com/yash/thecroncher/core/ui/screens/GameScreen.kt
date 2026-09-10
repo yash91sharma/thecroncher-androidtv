@@ -24,7 +24,7 @@ class GameScreen(
 ) : Screen {
 
     val state = GameState(
-        maze = Maze.loadClassic(),
+        maze = Maze.loadDefault(),
         difficulty = settings.difficulty,
         rng = rng,
         audio = if (settings.soundEnabled) audio else SilentAudioOut,

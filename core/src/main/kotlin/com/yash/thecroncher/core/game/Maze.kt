@@ -82,33 +82,33 @@ class Maze private constructor(
         const val TILE_SIZE = 8
 
         /** The one row that runs off both sides of the screen. */
-        const val TUNNEL_ROW = 14
+        const val TUNNEL_ROW = 11
 
         /** Tunnel stretches: x below this on the left, above the other on the right. */
         const val TUNNEL_LEFT_END = 6
-        const val TUNNEL_RIGHT_START = 21
+        const val TUNNEL_RIGHT_START = 39
 
         /** The croncher's dotless starting pocket, below the ghost house. */
-        val CRONCHER_START_TILE = TilePos(13, 23)
+        val CRONCHER_START_TILE = TilePos(22, 14)
 
-        /** Where Blinky waits, directly above the house door. */
-        val BLINKY_START_TILE = TilePos(13, 11)
+        /** Where the dog waits, on the lane directly above the house door. */
+        val BLINKY_START_TILE = TilePos(22, 8)
 
         /** The middle of the ghost house, where the other three begin. */
-        val HOUSE_CENTRE_TILE = TilePos(13, 14)
+        val HOUSE_CENTRE_TILE = TilePos(22, 11)
 
         /**
          * The corners each ghost retreats to during scatter. They sit outside the
          * maze, which is precisely why the ghosts circle rather than settle.
          */
-        val SCATTER_BLINKY = TilePos(25, 0)
+        val SCATTER_BLINKY = TilePos(43, 0)
         val SCATTER_PINKY = TilePos(2, 0)
-        val SCATTER_INKY = TilePos(27, 30)
-        val SCATTER_CLYDE = TilePos(0, 30)
+        val SCATTER_INKY = TilePos(45, 21)
+        val SCATTER_CLYDE = TilePos(0, 21)
 
-        private const val CLASSIC_RESOURCE = "/maze/classic.txt"
+        private const val MAZE_RESOURCE = "/maze/croncher.txt"
 
-        fun loadClassic(): Maze = load(CLASSIC_RESOURCE)
+        fun loadDefault(): Maze = load(MAZE_RESOURCE)
 
         fun load(resource: String): Maze {
             val text = Maze::class.java.getResourceAsStream(resource)

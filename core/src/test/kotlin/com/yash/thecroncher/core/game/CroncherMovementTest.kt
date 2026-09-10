@@ -16,7 +16,7 @@ import org.junit.Test
  */
 class CroncherMovementTest {
 
-    private val maze = Maze.loadClassic()
+    private val maze = Maze.loadDefault()
 
     private fun croncher(
         tile: TilePos = Maze.CRONCHER_START_TILE,
@@ -66,21 +66,26 @@ class CroncherMovementTest {
         assertEquals("the turn was taken in the wrong tile", junction, turnedAt)
     }
 
-    /** A tile you can travel through and also turn out of, for the turn tests. */
-    private fun firstJunction(travel: Direction, turn: Direction): TilePos {
+    /**
+     * A tile you can travel through and also turn out of, with a clear run-up
+     * behind it: the run-up tiles must *not* offer the same turn, or the croncher
+     * would rightly take it early and the test would be measuring the wrong tile.
+     */
+    private fun firstJunction(travel: Direction, turn: Direction, runUp: Int = 6): TilePos {
         for (y in 0 until maze.height) {
             for (x in 0 until maze.width) {
                 if (!maze.isWalkable(x, y)) continue
                 if (!maze.isWalkable(x + travel.dx, y + travel.dy)) continue
-                if (!maze.isWalkable(x - travel.dx, y - travel.dy)) continue
                 if (!maze.isWalkable(x + turn.dx, y + turn.dy)) continue
-                // needs room to run up to it, all on one row
-                if ((1..3).all { maze.isWalkable(x - travel.dx * it, y - travel.dy * it) }) {
+                val approach = (1..runUp).map { TilePos(x - travel.dx * it, y - travel.dy * it) }
+                if (approach.all { maze.isWalkable(it.x, it.y) } &&
+                    approach.none { maze.isWalkable(it.x + turn.dx, it.y + turn.dy) }
+                ) {
                     return TilePos(x, y)
                 }
             }
         }
-        throw AssertionError("no junction found in the maze")
+        throw AssertionError("no junction with a clear run-up found in the maze")
     }
 
     @Test
@@ -92,26 +97,37 @@ class CroncherMovementTest {
 
     @Test
     fun `crosses one tile in eight ticks at full speed`() {
+        val start = Maze.CRONCHER_START_TILE
         val p = croncher(facing = Direction.LEFT)
         repeat(8) { p.update() }
-        assertEquals(TilePos(12, 23), p.tile())
+        assertEquals(TilePos(start.x - 1, start.y), p.tile())
         assertTrue(p.isAtTileCentre())
     }
 
     @Test
     fun `a wall stops it dead at the tile centre`() {
-        // From (6,23) the tile to the left is solid, so it must come to rest
-        // centred on (6,23) no matter how long it pushes.
-        val p = croncher(tile = TilePos(6, 23), facing = Direction.LEFT)
+        // Run west along the croncher's own row until the wall at the end of it:
+        // he must come to rest centred, no matter how long he pushes.
+        val end = deadEndWest()
+        val p = croncher(tile = end, facing = Direction.LEFT)
         repeat(100) { p.update() }
-        assertEquals(TilePos(6, 23), p.tile())
+        assertEquals(end, p.tile())
         assertTrue(p.isAtTileCentre())
+    }
+
+    /** The westmost walkable tile on the croncher's row that has a wall beyond it. */
+    private fun deadEndWest(): TilePos {
+        val y = Maze.CRONCHER_START_TILE.y
+        for (x in 1 until maze.width) {
+            if (maze.isWalkable(x, y) && !maze.isWalkable(x - 1, y)) return TilePos(x, y)
+        }
+        throw AssertionError("the croncher's row has no wall on the left")
     }
 
     @Test
     fun `will not turn into a wall`() {
         // Above the start pocket is solid, so the request must be held, not obeyed.
-        val p = croncher(tile = TilePos(13, 23), facing = Direction.LEFT)
+        val p = croncher(tile = Maze.CRONCHER_START_TILE, facing = Direction.LEFT)
         p.requestDirection(Direction.UP)
         p.update()
         assertEquals(Direction.LEFT, p.direction)
@@ -122,7 +138,7 @@ class CroncherMovementTest {
         // The invariant behind buffered turns: whenever the turn is taken, the way
         // must actually have been open. Holding UP for the whole run exercises
         // every junction along the corridor.
-        val p = croncher(tile = TilePos(13, 23), facing = Direction.LEFT)
+        val p = croncher(tile = Maze.CRONCHER_START_TILE, facing = Direction.LEFT)
         p.requestDirection(Direction.UP)
         var turns = 0
         repeat(400) {
@@ -142,21 +158,23 @@ class CroncherMovementTest {
 
     @Test
     fun `a buffered turn is applied when the junction arrives`() {
-        // Ask to go up while still a couple of tiles short of the opening at
-        // (6,23). The request must survive until it becomes legal.
-        val p = croncher(tile = TilePos(9, 23), facing = Direction.LEFT)
+        // Ask to go up while still short of the opening. The request must survive
+        // until it becomes legal, and must be taken at the junction itself.
+        val junction = firstJunction(travel = Direction.LEFT, turn = Direction.UP)
+        val p = croncher(tile = TilePos(junction.x + 3, junction.y), facing = Direction.LEFT)
         p.requestDirection(Direction.UP)
         assertEquals(Direction.LEFT, p.direction)
-        repeat(8 * 3) { p.update() }
+        repeat(8 * 4) { p.update() }
         assertEquals("should have turned up at the junction", Direction.UP, p.direction)
-        assertEquals(6, p.tile().x)
+        assertEquals(junction.x, p.tile().x)
     }
 
     @Test
     fun `an early request is not forgotten across several tiles`() {
-        val p = croncher(tile = TilePos(11, 23), facing = Direction.LEFT)
+        val junction = firstJunction(travel = Direction.LEFT, turn = Direction.UP)
+        val p = croncher(tile = TilePos(junction.x + 5, junction.y), facing = Direction.LEFT)
         p.requestDirection(Direction.UP)
-        repeat(8 * 5) { p.update() }
+        repeat(8 * 6) { p.update() }
         assertEquals(Direction.UP, p.direction)
     }
 
@@ -174,13 +192,13 @@ class CroncherMovementTest {
     fun `the tunnel wraps from the left edge to the right`() {
         val p = croncher(tile = TilePos(0, Maze.TUNNEL_ROW), facing = Direction.LEFT)
         repeat(8) { p.update() }
-        assertEquals(27, p.tile().x)
+        assertEquals(maze.width - 1, p.tile().x)
         assertEquals(Maze.TUNNEL_ROW, p.tile().y)
     }
 
     @Test
     fun `the tunnel wraps from the right edge to the left`() {
-        val p = croncher(tile = TilePos(27, Maze.TUNNEL_ROW), facing = Direction.RIGHT)
+        val p = croncher(tile = TilePos(maze.width - 1, Maze.TUNNEL_ROW), facing = Direction.RIGHT)
         repeat(8) { p.update() }
         assertEquals(0, p.tile().x)
     }
@@ -191,7 +209,7 @@ class CroncherMovementTest {
         repeat(500) { p.update() }
         assertTrue("x=${p.x}", p.x >= 0)
         // Travelling horizontally, he must stay exactly on the lane centre line.
-        assertEquals(tileCentreSub(23), p.y)
+        assertEquals(tileCentreSub(Maze.CRONCHER_START_TILE.y), p.y)
     }
 
     @Test

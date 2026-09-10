@@ -12,25 +12,25 @@ import org.junit.Test
  */
 class MazeTest {
 
-    private val maze = Maze.loadClassic()
+    private val maze = Maze.loadDefault()
 
     @Test
-    fun `classic maze is 28 by 31 tiles`() {
-        assertEquals(28, maze.width)
-        assertEquals(31, maze.height)
+    fun `the maze is 46 by 22 tiles`() {
+        assertEquals(46, maze.width)
+        assertEquals(22, maze.height)
     }
 
     @Test
-    fun `there are exactly 240 dots and 4 energizers`() {
-        assertEquals(240, maze.dotCount)
+    fun `there are exactly 368 dots and 4 energizers`() {
+        assertEquals(368, maze.dotCount)
         assertEquals(4, maze.energizerCount)
-        assertEquals(244, maze.totalPellets)
+        assertEquals(372, maze.totalPellets)
     }
 
     @Test
     fun `the four energizers sit in the traditional corners`() {
         assertEquals(
-            setOf(TilePos(1, 3), TilePos(26, 3), TilePos(1, 23), TilePos(26, 23)),
+            setOf(TilePos(1, 3), TilePos(44, 3), TilePos(1, 18), TilePos(44, 18)),
             maze.energizerPositions.toSet(),
         )
     }
@@ -58,24 +58,25 @@ class MazeTest {
 
     @Test
     fun `x wraps around through the tunnel`() {
-        assertEquals(27, maze.wrapX(-1))
-        assertEquals(0, maze.wrapX(28))
-        assertEquals(26, maze.wrapX(-2))
-        assertEquals(1, maze.wrapX(29))
+        val w = maze.width
+        assertEquals(w - 1, maze.wrapX(-1))
+        assertEquals(0, maze.wrapX(w))
+        assertEquals(w - 2, maze.wrapX(-2))
+        assertEquals(1, maze.wrapX(w + 1))
         assertEquals(13, maze.wrapX(13))
     }
 
     @Test
     fun `the ghost house door is two tiles wide`() {
-        assertEquals(Tile.DOOR, maze.tileAt(13, 12))
-        assertEquals(Tile.DOOR, maze.tileAt(14, 12))
-        assertEquals(setOf(TilePos(13, 12), TilePos(14, 12)), maze.doorPositions.toSet())
+        assertEquals(Tile.DOOR, maze.tileAt(22, 9))
+        assertEquals(Tile.DOOR, maze.tileAt(23, 9))
+        assertEquals(setOf(TilePos(22, 9), TilePos(23, 9)), maze.doorPositions.toSet())
     }
 
     @Test
     fun `the ghost house interior is marked and only ghosts may enter`() {
-        for (x in 11..16) {
-            for (y in 13..15) {
+        for (x in 20..25) {
+            for (y in 10..12) {
                 assertEquals("($x,$y)", Tile.HOUSE, maze.tileAt(x, y))
                 assertFalse("croncher must not enter the house at ($x,$y)", maze.isWalkable(x, y))
                 assertTrue("ghosts must be able to occupy ($x,$y)", maze.isGhostWalkable(x, y))
@@ -85,8 +86,8 @@ class MazeTest {
 
     @Test
     fun `croncher cannot pass through the door but ghosts can`() {
-        assertFalse(maze.isWalkable(13, 12))
-        assertTrue(maze.isGhostWalkable(13, 12))
+        assertFalse(maze.isWalkable(22, 9))
+        assertTrue(maze.isGhostWalkable(22, 9))
     }
 
     @Test
@@ -137,7 +138,7 @@ class MazeTest {
     fun `a freshly loaded maze is independent of any previous one`() {
         // Maze is the immutable layout; eaten pellets live in game state. Two loads
         // must therefore be identical.
-        val other = Maze.loadClassic()
+        val other = Maze.loadDefault()
         assertEquals(maze.totalPellets, other.totalPellets)
         assertEquals(maze.pelletPositions, other.pelletPositions)
     }

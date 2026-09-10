@@ -364,7 +364,7 @@ class GameState(
         val TOY_APPEARANCES = intArrayOf(70, 170)
 
         /** It sits just below the ghost house. */
-        val TOY_TILE = TilePos(13, 17)
+        val TOY_TILE = TilePos(22, 17)
 
         const val TOY_TICKS = 9 * TICKS_PER_SECOND
     }

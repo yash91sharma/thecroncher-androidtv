@@ -28,7 +28,7 @@ class DeterministicGameTest {
     )
 
     private fun newGame(seed: Long) = GameState(
-        maze = Maze.loadClassic(),
+        maze = Maze.loadDefault(),
         difficulty = Difficulties.NORMAL,
         rng = SeededRng(seed),
     )
@@ -115,7 +115,7 @@ class DeterministicGameTest {
 
     @Test
     fun `croncher never ends up inside a wall`() {
-        val game = GameState(Maze.loadClassic(), Difficulties.HARD, SeededRng(5))
+        val game = GameState(Maze.loadDefault(), Difficulties.HARD, SeededRng(5))
         game.startNewGame()
         repeat(20_000) { tick ->
             if (tick % 23 == 0) game.requestDirection(script[(tick / 23) % script.size])
@@ -168,12 +168,13 @@ class DeterministicGameTest {
     }
 
     private companion object {
-        // Re-recorded 2026-09-09, after actors were taught to turn at a tile
-        // centre they pass over mid-tick rather than one they land exactly on.
-        // Every trajectory in the game changed with it; the guard tests above
-        // (it still eats, still dies, never enters a wall) are what say the new
-        // trajectory is a real game rather than a broken one.
-        const val GOLDEN_10K = -8785291081089078056L
-        const val GOLDEN_30K = -4372369635475297860L
+        // Re-recorded 2026-09-09, twice: once after actors were taught to turn at
+        // a tile centre they pass over mid-tick rather than one they land exactly
+        // on, and again when the maze was redrawn 48x22 to fill a 16:9 screen.
+        // Every trajectory in the game changes with either; the guard tests above
+        // (it still eats, still dies, nobody ends up inside a wall) are what say
+        // the new trajectory is a real game rather than a broken one.
+        const val GOLDEN_10K = 5545701346692065089L
+        const val GOLDEN_30K = -6846784224751319631L
     }
 }

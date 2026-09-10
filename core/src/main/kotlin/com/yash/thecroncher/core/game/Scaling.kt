@@ -1,10 +1,10 @@
 package com.yash.thecroncher.core.game
 
 /** Width of the arcade framebuffer, in pixels: 28 tiles of 8px. */
-const val VIRTUAL_WIDTH = 224
+const val VIRTUAL_WIDTH = 384
 
 /** Height of the arcade framebuffer: 31 maze rows plus the HUD rows, 36 tiles of 8px. */
-const val VIRTUAL_HEIGHT = 288
+const val VIRTUAL_HEIGHT = 216
 
 /** Where the arcade framebuffer lands on the real surface, and how big. */
 data class Viewport(

@@ -25,7 +25,7 @@ class GameRendererTest {
     private val theme = ThemeRegistry.default
 
     private fun game() = GameState(
-        maze = Maze.loadClassic(),
+        maze = Maze.loadDefault(),
         difficulty = Difficulties.NORMAL,
         rng = SeededRng(1),
     ).apply { startNewGame() }
@@ -64,9 +64,9 @@ class GameRendererTest {
     }
 
     @Test
-    fun `all 240 treats are drawn at the start of a level`() {
+    fun `every treat in the maze is drawn at the start of a level`() {
         val drawn = TreatArt.shapes.sumOf { draw(game(), 0).spriteCount(it) }
-        assertEquals(240, drawn)
+        assertEquals(game().maze.dotCount, drawn)
     }
 
     @Test

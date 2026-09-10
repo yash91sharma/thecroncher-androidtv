@@ -18,27 +18,33 @@ object Layout {
 
     const val TILE = Maze.TILE_SIZE
 
-    /** The maze starts three tile-rows down, leaving room for the score. */
-    const val MAZE_ORIGIN_X = 0
+    /**
+     * The maze is 46 tiles wide inside a 48-tile screen, drawn one tile in from
+     * each edge. A television overscans, and a corridor flush against the panel
+     * edge is a corridor you cannot see.
+     */
+    const val MAZE_ORIGIN_X = TILE
+
+    /** Three tile-rows down, leaving room for the score. */
     const val MAZE_ORIGIN_Y = 3 * TILE
 
-    const val MAZE_PIXEL_HEIGHT = 31 * TILE
+    const val MAZE_PIXEL_HEIGHT = 22 * TILE
 
     // --- top HUD ---
     const val SCORE_LABEL_Y = 1
     const val SCORE_VALUE_Y = 9
-    const val SCORE_LEFT_X = 16
+    const val SCORE_LEFT_X = TILE + 8
     const val HIGH_SCORE_CENTRE_X = SCREEN_WIDTH / 2
 
     // --- bottom HUD ---
-    const val LIVES_Y = MAZE_ORIGIN_Y + MAZE_PIXEL_HEIGHT + 2
-    const val LIVES_LEFT_X = 12
+    const val LIVES_Y = MAZE_ORIGIN_Y + MAZE_PIXEL_HEIGHT
+    const val LIVES_LEFT_X = TILE + 4
     const val LIVES_SPACING = 16
-    const val TOY_RIGHT_X = SCREEN_WIDTH - 12
+    const val TOY_RIGHT_X = SCREEN_WIDTH - TILE - 4
 
     // --- centre messages ---
     const val MESSAGE_CENTRE_X = SCREEN_WIDTH / 2
-    const val READY_Y = MAZE_ORIGIN_Y + 20 * TILE - 3
+    const val READY_Y = MAZE_ORIGIN_Y + 14 * TILE + 1
     const val GAME_OVER_Y = READY_Y
 
     /** Converts a maze pixel coordinate to a screen coordinate. */

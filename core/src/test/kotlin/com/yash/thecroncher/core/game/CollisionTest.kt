@@ -13,7 +13,7 @@ import org.junit.Test
 class CollisionTest {
 
     private fun game(difficulty: Difficulty = Difficulties.NORMAL) = GameState(
-        maze = Maze.loadClassic(),
+        maze = Maze.loadDefault(),
         difficulty = difficulty,
         rng = SeededRng(3),
     ).apply {

@@ -13,7 +13,7 @@ import org.junit.Test
  */
 class GhostRoutingTest {
 
-    private val maze = Maze.loadClassic()
+    private val maze = Maze.loadDefault()
 
     private fun choose(
         from: TilePos,
@@ -25,22 +25,22 @@ class GhostRoutingTest {
     @Test
     fun `it heads towards the target`() {
         // In the long corridor on row 23, a target to the west means going west.
-        val dir = choose(from = TilePos(10, 23), facing = Direction.LEFT, target = TilePos(1, 23))
+        val dir = choose(from = TilePos(10, 20), facing = Direction.LEFT, target = TilePos(1, 20))
         assertEquals(Direction.LEFT, dir)
     }
 
     @Test
     fun `it never reverses unless explicitly told it may`() {
-        val dir = choose(from = TilePos(10, 23), facing = Direction.LEFT, target = TilePos(20, 23))
+        val dir = choose(from = TilePos(10, 20), facing = Direction.LEFT, target = TilePos(20, 20))
         assertNotEquals("reversing is forbidden", Direction.RIGHT, dir)
     }
 
     @Test
     fun `a forced reversal is obeyed when allowed`() {
         val dir = choose(
-            from = TilePos(10, 23),
+            from = TilePos(10, 20),
             facing = Direction.LEFT,
-            target = TilePos(20, 23),
+            target = TilePos(20, 20),
             allowReverse = true,
         )
         assertEquals(Direction.RIGHT, dir)
@@ -95,9 +95,9 @@ class GhostRoutingTest {
     }
 
     @Test
-    fun `the restricted tiles are the four the arcade uses`() {
+    fun `there are four tiles where a ghost may not turn up`() {
         assertEquals(
-            setOf(TilePos(12, 11), TilePos(15, 11), TilePos(12, 23), TilePos(15, 23)),
+            setOf(TilePos(12, 5), TilePos(33, 5), TilePos(12, 17), TilePos(33, 17)),
             GhostAi.NO_UP_TURN_TILES.toSet(),
         )
     }
@@ -106,7 +106,7 @@ class GhostRoutingTest {
     fun `a dead end returns null rather than throwing`() {
         // Inside the house with the door closed to it, there may be no legal exit.
         val dir = GhostAi.chooseDirection(
-            maze, TilePos(13, 14), Direction.UP, TilePos(1, 1),
+            maze, Maze.HOUSE_CENTRE_TILE, Direction.UP, TilePos(1, 1),
             allowReverse = false, ghostsMayEnterHouse = false,
         )
         assertEquals(null, dir)

@@ -19,7 +19,7 @@ class FrightModeTest {
     private val audio = RecordingAudioOut()
 
     private fun game(difficulty: Difficulty = Difficulties.NORMAL) = GameState(
-        maze = Maze.loadClassic(),
+        maze = Maze.loadDefault(),
         difficulty = difficulty,
         rng = SeededRng(7),
         audio = audio,
@@ -28,11 +28,17 @@ class FrightModeTest {
         repeat(GameState.READY_TICKS) { tick() }
     }
 
-    /** Walks the croncher onto an energizer and eats it. */
+    /**
+     * Walks the croncher onto an energizer and eats it, then parks him nose-first
+     * against the wall above his start pocket. Without the parking he runs on down
+     * the corridor and eats the *next* energizer, quietly restarting the fright he
+     * is supposed to be timing.
+     */
     private fun GameState.takeEnergizer() {
         val spot = maze.energizerPositions.first()
         croncher.placeAtTileCentre(spot, Direction.DOWN)
         tick()
+        croncher.placeAtTileCentre(Maze.CRONCHER_START_TILE, Direction.UP)
     }
 
     @Test

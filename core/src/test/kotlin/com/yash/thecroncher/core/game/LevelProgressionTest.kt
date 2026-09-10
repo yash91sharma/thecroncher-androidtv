@@ -8,7 +8,7 @@ import org.junit.Test
 class LevelProgressionTest {
 
     private fun game() = GameState(
-        maze = Maze.loadClassic(),
+        maze = Maze.loadDefault(),
         difficulty = Difficulties.NORMAL,
         rng = SeededRng(11),
     ).apply {
@@ -26,9 +26,9 @@ class LevelProgressionTest {
     }
 
     @Test
-    fun `a level starts with all 244 pellets`() {
+    fun `a level starts with all 372 pellets`() {
         val g = game()
-        assertEquals(244, g.pelletsRemaining)
+        assertEquals(372, g.pelletsRemaining)
         assertEquals(1, g.level)
     }
 
@@ -48,7 +48,7 @@ class LevelProgressionTest {
         repeat(GameState.LEVEL_END_TICKS + 1) { g.tick() }
 
         assertEquals(2, g.level)
-        assertEquals(244, g.pelletsRemaining)
+        assertEquals(372, g.pelletsRemaining)
         assertTrue("level 2 should be faster", g.croncher.speed > speedBefore)
     }
 

@@ -14,7 +14,7 @@ import org.junit.Test
 class GhostHouseTest {
 
     private fun newGame() = GameState(
-        maze = Maze.loadClassic(),
+        maze = Maze.loadDefault(),
         difficulty = Difficulties.NORMAL,
         rng = SeededRng(42),
     ).apply { startNewGame() }
@@ -52,9 +52,16 @@ class GhostHouseTest {
         assertTrue("inky must still be waiting at 29 dots",
             g.ghost(GhostKind.INKY).mode.isInsideHouse || g.dotsEaten >= 30)
 
+        // Asked "did he ever get out", not "is he out now": the croncher is
+        // standing still in his pocket, so a ghost eventually catches him and the
+        // whole cast is put back in the house.
         g.debugSetDotsEaten(60)
-        repeat(600) { g.tick() }
-        assertFalse("clyde should be out at 60 dots", g.ghost(GhostKind.CLYDE).mode.isInsideHouse)
+        var clydeGotOut = false
+        repeat(600) {
+            g.tick()
+            if (!g.ghost(GhostKind.CLYDE).mode.isInsideHouse) clydeGotOut = true
+        }
+        assertTrue("clyde should be out at 60 dots", clydeGotOut)
     }
 
     @Test
