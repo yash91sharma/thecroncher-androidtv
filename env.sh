@@ -8,15 +8,15 @@
 # Resolve this file's directory in either shell. Kept `set -u`-safe so that
 # scripts running under `set -euo pipefail` can source it.
 if [ -n "${BASH_SOURCE:-}" ]; then
-    _pacman_env_src="${BASH_SOURCE[0]}"
+    _croncher_env_src="${BASH_SOURCE[0]}"
 elif [ -n "${ZSH_VERSION:-}" ]; then
-    _pacman_env_src="${(%):-%N}"
+    _croncher_env_src="${(%):-%N}"
 else
-    _pacman_env_src="$0"
+    _croncher_env_src="$0"
 fi
 
-PROJECT_ROOT="$( cd "$( dirname "$_pacman_env_src" )" && pwd )"
-unset _pacman_env_src
+PROJECT_ROOT="$( cd "$( dirname "$_croncher_env_src" )" && pwd )"
+unset _croncher_env_src
 export PROJECT_ROOT
 export TOOLCHAIN="$PROJECT_ROOT/.toolchain"
 
@@ -40,8 +40,8 @@ export PATH="$TOOLCHAIN/bin:$JAVA_HOME/bin:$ANDROID_HOME/cmdline-tools/latest/bi
 # Only decorate an interactive prompt, and never stack the marker twice.
 case "${PS1:-}" in
     "")             ;;
-    "(pacman-tv) "*) ;;
-    *) export PS1="(pacman-tv) ${PS1}" ;;
+    "(croncher) "*) ;;
+    *) export PS1="(croncher) ${PS1}" ;;
 esac
 
 if [ ! -d "$JAVA_HOME" ]; then

@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "pacman-androidtv"
+rootProject.name = "the-croncher"
 
 // :core is pure Kotlin/JVM and cannot see the Android SDK — that boundary is
 // what keeps the game simulation unit-testable without a device.
