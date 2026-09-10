@@ -1,18 +1,27 @@
-# Pac-Man for Google TV
+# The Croncher
 
-A 16-bit style Pac-Man for Android TV, built for a Google TV Streamer on a 4K OLED,
+A 16-bit maze game for Android TV: a grey tabby cat eats his way through a house
+full of treats while a dog, a vacuum cleaner, a spray bottle and a cucumber do
+their best to ruin his evening. Built for a Google TV Streamer on a 4K OLED,
 played with a Bluetooth gamepad.
 
-See **[plan.md](plan.md)** for the full project plan and current progress.
-See **[CLAUDE.md](CLAUDE.md)** for the project rules.
+The working rules for this repo — git, TDD, the `:core`/`:app` boundary and the
+sealed toolchain — live in an untracked rules file in the project root.
 
 ## Quick start
 
 ```bash
-source env.sh          # activate the sealed toolchain (every new shell)
-./gradlew test         # fast JVM tests — the whole game simulation, no device
+source env.sh           # activate the sealed toolchain (every new shell)
+./gradlew test          # fast JVM tests — the whole game simulation, no device
 ./gradlew assembleDebug # -> app/build/outputs/apk/debug/app-debug.apk
+./scripts/emulator.sh   # boot the Android TV emulator
+./scripts/install.sh --run   # build, install and launch on it
 ```
+
+Install with `scripts/install.sh`, not `./gradlew installDebug`: the Gradle daemon
+runs with the real `$HOME`, so the adb *it* starts writes RSA keys into
+`~/.android`. The script goes through the sealed wrapper instead and finishes by
+running the leak check.
 
 If `.toolchain/` does not exist yet:
 
@@ -44,25 +53,51 @@ rm -rf .toolchain         # complete uninstall
 
 Everything below is a data change. None of it needs new drawing or navigation code.
 
+### Restyle the cast
+
+Every colour in the game lives in one file:
+`core/src/main/kotlin/com/yash/thecroncher/core/theme/themes/TheCroncher.kt`. The
+art names *inks* — "fur", "tongue", "water" — and the theme's `SpritePalette` says
+what each ink looks like, so a ginger cat is a one-line change and nothing is
+redrawn.
+
+### Redraw a character
+
+`core/src/main/kotlin/com/yash/thecroncher/core/theme/CronchArt.kt` holds every
+sprite as an ASCII grid you can read and edit in place. `PixelArt` turns a grid
+into pixels and supplies the tricks that keep the drawing down: facing left is the
+right-facing art mirrored, walking is the same art shifted a pixel, frightened is
+the same silhouette in blue with a face painted inside it.
+
+The grids were laid out with the throwaway scripts kept out of the repo; editing
+them by hand is expected and `SpriteSourceTest` will catch a ragged row, an
+unknown ink, or a cast that has stopped being tellable apart.
+
 ### Add a theme
 
-1. Copy `core/src/main/kotlin/com/yash/pacmantv/core/theme/themes/Neon.kt`, rename
-   it, and give it a unique `id`.
+1. Copy `theme/themes/TheCroncher.kt`, rename it, and give it a unique `id`.
 2. Add it to the list in `ThemeRegistry.all`.
 
 That is the whole procedure. `ThemeRegistryTest` fails if you leave a colour slot
 unfilled or a sprite unresolved, so a half-finished theme breaks at test time
-rather than on the television. It appears in Settings automatically.
+rather than on the television. (With more than one theme registered, add a `THEME`
+row back to `SettingsScreen` — one `MenuItem`, as below.)
 
-### Change Pac-Man's icon, the ghosts, the pellets
+### Recast the foes
 
-Art is addressed by `SpriteId`, never by file path, so no call site knows where the
-pixels come from. Today `ProceduralSpriteSource` draws them in code. To use your
-own artwork, point a theme's `sprites` at a `SpriteSource` that loads PNGs from
-`app/src/main/assets/sprites/<theme>/`. Nothing else changes.
+`FoeCast.all` in `theme/FoeCast.kt` says which art each of the four ghosts wears.
+Swapping the cucumber for a hair dryer is an entry there plus its grids in
+`CronchArt.kt`; the chase logic underneath never knows.
 
-To change only the *launcher* icon or the TV banner, edit
-`app/src/main/res/drawable/ic_launcher.xml` and `banner.xml`.
+### Change the launcher icon or the TV banner
+
+Both are generated from the game's own art, so they cannot drift from it:
+
+```bash
+python3 scripts/make-icons.py     # -> app/src/main/res/drawable/{ic_launcher,banner}.xml
+```
+
+Edit the cat grid or the palette and run it again.
 
 ### Add a settings option
 
@@ -90,11 +125,11 @@ push it from wherever it belongs with `Transition.Push(MyScreen())`.
 
 `core/src/main/resources/maze/classic.txt`, where `#` is wall, `.` a dot, `o` an
 energizer, `-` the ghost-house door, `_` the house interior, and a space is empty
-corridor. `MazeTest` flood-fills from Pac-Man's start and fails if any pellet
+corridor. `MazeTest` flood-fills from the croncher's start and fails if any treat
 becomes unreachable, so you cannot accidentally ship an unplayable maze.
 
 ### Retune the difficulty tiers
 
 `Difficulties.EASY` / `NORMAL` / `HARD` in
-`core/src/main/kotlin/com/yash/pacmantv/core/game/Difficulty.kt`. Adding a fourth
+`core/src/main/kotlin/com/yash/thecroncher/core/game/Difficulty.kt`. Adding a fourth
 tier is one more entry in `Difficulties.all`.

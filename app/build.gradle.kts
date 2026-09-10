@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.yash.pacmantv"
+    namespace = "com.yash.thecroncher"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.yash.pacmantv"
+        applicationId = "com.yash.thecroncher"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
