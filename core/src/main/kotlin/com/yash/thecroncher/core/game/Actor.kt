@@ -52,23 +52,39 @@ abstract class Actor(protected val maze: Maze) {
     /**
      * Advances by [speed] along [direction], stopping centred on the current tile
      * if the way ahead is blocked, and wrapping through the side tunnels.
+     *
+     * If the move would carry the actor *over* the centre of its tile, it stops
+     * there first, calls [atCentre], and spends whatever is left of the tick in
+     * whatever direction that left it facing. This is what makes junctions work:
+     * the speeds the game actually runs at are fractions of a pixel per tick — 205
+     * sub-pixel units against a tile of 2048 at level one — so an actor sails over
+     * a centre without ever landing on one. Waiting for an exact centre meant a
+     * turn only happened when a wall stopped him dead.
+     *
+     * A tick never covers more than one tile, so at most one centre can fall
+     * inside it, and no movement is lost: the two halves add up to [speed].
      */
-    protected fun step() {
-        val blocked = !neighbourIsOpen(direction)
-        var moved = speed
+    protected fun step(atCentre: () -> Unit = {}) {
+        var budget = speed
 
-        if (blocked) {
-            // Never travel past the centre of the tile we are stopping in.
-            val room = -overshootAlong(direction)
-            moved = moved.coerceAtMost(room.coerceAtLeast(0))
+        val toCentre = -overshootAlong(direction)
+        if (toCentre in 0..budget) {
+            advance(toCentre)
+            budget -= toCentre
+            atCentre()
         }
 
-        x += direction.dx * moved
-        y += direction.dy * moved
+        val room = if (neighbourIsOpen(direction)) budget else (-overshootAlong(direction)).coerceAtLeast(0)
+        advance(budget.coerceAtMost(room))
 
         // Horizontal wrap-around: the side tunnels.
         val span = maze.width * TILE_SUB
         x = Math.floorMod(x, span)
+    }
+
+    private fun advance(distance: Int) {
+        x += direction.dx * distance
+        y += direction.dy * distance
     }
 
     /**

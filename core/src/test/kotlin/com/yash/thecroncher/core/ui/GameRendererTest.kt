@@ -111,19 +111,19 @@ class GameRendererTest {
     }
 
     @Test
-    fun `the cat is drawn`() {
+    fun `the cat is drawn, facing the player whichever way he runs`() {
         val g = game()
-        val gfx = draw(g, 0)
-        val catSprites = Direction.entries.flatMap { dir ->
-            val id = when (dir) {
-                Direction.UP -> SpriteId.CAT_UP
-                Direction.DOWN -> SpriteId.CAT_DOWN
-                Direction.LEFT -> SpriteId.CAT_LEFT
-                Direction.RIGHT -> SpriteId.CAT_RIGHT
-            }
-            (0 until id.frameCount).map { theme.sprites.sprite(id, it) }
-        }.toSet()
-        assertTrue(gfx.sprites.any { it.sprite in catSprites })
+        val cat = (0 until SpriteId.CAT.frameCount)
+            .map { theme.sprites.sprite(SpriteId.CAT, it) }
+            .toSet()
+        for (dir in Direction.entries) {
+            g.requestDirection(dir)
+            repeat(4) { g.tick() }
+            assertTrue(
+                "the cat vanished when running $dir",
+                draw(g, 0).sprites.any { it.sprite in cat },
+            )
+        }
     }
 
     @Test

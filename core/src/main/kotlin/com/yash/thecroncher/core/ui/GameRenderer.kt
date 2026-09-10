@@ -172,15 +172,10 @@ object GameRenderer {
             return
         }
 
-        val facing = when (state.croncher.direction) {
-            Direction.UP -> SpriteId.CAT_UP
-            Direction.DOWN -> SpriteId.CAT_DOWN
-            Direction.LEFT -> SpriteId.CAT_LEFT
-            Direction.RIGHT -> SpriteId.CAT_RIGHT
-        }
-        // He bounces along on the move and stands still when he is stopped.
+        // He faces the player whichever way he is running, and bounces along on
+        // the move — standing still when he is stopped.
         val frame = ((state.croncher.movingTicks / BOUNCE_TICKS) % 2).toInt()
-        g.drawSpriteCentred(theme.sprites.sprite(facing, frame), cx, cy)
+        g.drawSpriteCentred(theme.sprites.sprite(SpriteId.CAT, frame), cx, cy)
     }
 
     private fun drawFoes(g: Gfx, theme: Theme, state: GameState, tick: Long) {

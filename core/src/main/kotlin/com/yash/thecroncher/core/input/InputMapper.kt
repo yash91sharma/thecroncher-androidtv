@@ -25,6 +25,8 @@ object KeyCodes {
     const val DPAD_CENTER = 23
     const val ENTER = 66
     const val MENU = 82
+    /** A desk keyboard's Esc. A TV remote sends [BACK]; the emulator sends this. */
+    const val ESCAPE = 111
     const val BUTTON_A = 96
     const val BUTTON_B = 97
     const val BUTTON_X = 99
@@ -74,7 +76,7 @@ class InputMapper {
         if (!down) return null      // buttons act on press
         val button = when (keyCode) {
             KeyCodes.BUTTON_A, KeyCodes.DPAD_CENTER, KeyCodes.ENTER -> Button.CONFIRM
-            KeyCodes.BUTTON_B, KeyCodes.BACK -> Button.BACK
+            KeyCodes.BUTTON_B, KeyCodes.BACK, KeyCodes.ESCAPE -> Button.BACK
             KeyCodes.BUTTON_START, KeyCodes.MENU -> Button.PAUSE
             else -> return null
         }

@@ -168,8 +168,12 @@ class DeterministicGameTest {
     }
 
     private companion object {
-        // Recorded 2026-09-08 from the implementation at that commit.
-        const val GOLDEN_10K = 8042856243782083524L
-        const val GOLDEN_30K = -1677214051332628817L
+        // Re-recorded 2026-09-09, after actors were taught to turn at a tile
+        // centre they pass over mid-tick rather than one they land exactly on.
+        // Every trajectory in the game changed with it; the guard tests above
+        // (it still eats, still dies, never enters a wall) are what say the new
+        // trajectory is a real game rather than a broken one.
+        const val GOLDEN_10K = -8785291081089078056L
+        const val GOLDEN_30K = -4372369635475297860L
     }
 }

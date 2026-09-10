@@ -30,10 +30,7 @@ class CronchSpriteSource(private val palette: SpritePalette) : SpriteSource {
     }
 
     private fun render(id: SpriteId, frame: Int): Sprite = when (id) {
-        SpriteId.CAT_RIGHT -> bounced(grid(CronchArt.CAT_RIGHT), frame)
-        SpriteId.CAT_LEFT -> bounced(PixelArt.mirrored(grid(CronchArt.CAT_RIGHT)), frame)
-        SpriteId.CAT_UP -> bounced(grid(CronchArt.CAT_UP), frame)
-        SpriteId.CAT_DOWN -> bounced(grid(CronchArt.CAT_DOWN), frame)
+        SpriteId.CAT -> bounced(grid(CronchArt.CAT_FACE), frame)
         SpriteId.CAT_FAINT -> faint(frame)
 
         SpriteId.DOG_RIGHT -> grid(CronchArt.DOG_SIDE[frame])
@@ -78,7 +75,7 @@ class CronchSpriteSource(private val palette: SpritePalette) : SpriteSource {
         SpriteId.TOY_GOLDFISH -> grid(CronchArt.TOY_GOLDFISH)
 
         // The reserve lives are the cat's face, sitting patiently.
-        SpriteId.LIFE_ICON -> grid(CronchArt.CAT_DOWN)
+        SpriteId.LIFE_ICON -> grid(CronchArt.CAT_FACE)
     }
 
     private fun grid(rows: List<String>) = PixelArt.sprite(rows, ink)
@@ -104,7 +101,7 @@ class CronchSpriteSource(private val palette: SpritePalette) : SpriteSource {
 
     /** Dizzy eyes first, then the cat fizzles away over the remaining frames. */
     private fun faint(frame: Int): Sprite {
-        val dizzy = PixelArt.overlaidWithin(grid(CronchArt.CAT_DOWN), PixelArt.sprite(CronchArt.CAT_DIZZY, ink))
+        val dizzy = PixelArt.overlaidWithin(grid(CronchArt.CAT_FACE), PixelArt.sprite(CronchArt.CAT_DIZZY, ink))
         val steps = SpriteId.CAT_FAINT.frameCount - 1
         return PixelArt.dissolved(dizzy, frame.toDouble() / steps)
     }

@@ -58,7 +58,7 @@ object MenuRenderer {
                 // sort of game.
                 val frame = ((tick / 12) % 2).toInt()
                 g.drawSpriteCentred(
-                    theme.sprites.sprite(SpriteId.CAT_RIGHT, frame), CURSOR_X, y + 3,
+                    theme.sprites.sprite(SpriteId.CAT, frame), CURSOR_X, y + 3,
                 )
                 // A thin rule under the row it is sitting on, so the selection is
                 // unmistakable across a room, cat or no cat.

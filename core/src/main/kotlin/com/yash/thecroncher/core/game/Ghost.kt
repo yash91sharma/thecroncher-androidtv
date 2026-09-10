@@ -129,8 +129,7 @@ class Ghost(
         val aboveHouse = y <= tileCentreSub(door.y)
 
         if (!(atDoorColumn && aboveHouse)) {
-            steerToward(TilePos(door.x, door.y), allowHouse = true)
-            step()
+            step { steerToward(TilePos(door.x, door.y), allowHouse = true) }
             return
         }
 
@@ -146,7 +145,7 @@ class Ghost(
 
     /** Ordinary hunting, scattering or fleeing. */
     private fun roam(ctx: GhostContext) {
-        if (isAtTileCentre()) {
+        step {
             if (mode == GhostMode.FRIGHTENED) {
                 steerRandomly(ctx.rng)
             } else {
@@ -154,7 +153,6 @@ class Ghost(
             }
             reversePending = false
         }
-        step()
     }
 
     // ------------------------------------------------------------ steering --

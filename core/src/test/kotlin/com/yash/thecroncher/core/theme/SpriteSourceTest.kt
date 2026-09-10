@@ -60,14 +60,14 @@ class SpriteSourceTest {
 
     @Test
     fun `frame index wraps so animation code cannot crash on overflow`() {
-        val a = source.sprite(SpriteId.CAT_RIGHT, 0)
-        val b = source.sprite(SpriteId.CAT_RIGHT, SpriteId.CAT_RIGHT.frameCount)
+        val a = source.sprite(SpriteId.CAT, 0)
+        val b = source.sprite(SpriteId.CAT, SpriteId.CAT.frameCount)
         assertTrue(a.pixels.contentEquals(b.pixels))
     }
 
     @Test
     fun `negative frame index is handled rather than throwing`() {
-        assertTrue(source.sprite(SpriteId.CAT_RIGHT, -1).pixels.isNotEmpty())
+        assertTrue(source.sprite(SpriteId.CAT, -1).pixels.isNotEmpty())
     }
 
     // ------------------------------------------------------------- the cat --
@@ -76,51 +76,58 @@ class SpriteSourceTest {
     fun `the cat holds his expression and bounces instead of chewing`() {
         // A mouth opening and closing at sixteen pixels turns a cat into a shape
         // with a hole in it. He keeps his face; the walk is a one-pixel hop.
-        for (id in CAT_FACING) {
-            val still = source.sprite(id, 0)
-            val hopped = source.sprite(id, 1)
-            assertEquals(
-                "$id loses pixels between frames, so something is animating",
-                still.pixels.count { (it ushr 24) != 0 },
-                hopped.pixels.count { (it ushr 24) != 0 },
-            )
-            assertTrue(
-                "$id does not hop",
-                PixelArt.shifted(still, dx = 0, dy = -1).pixels.contentEquals(hopped.pixels),
-            )
+        val still = source.sprite(SpriteId.CAT, 0)
+        val hopped = source.sprite(SpriteId.CAT, 1)
+        assertEquals(
+            "the cat loses pixels between frames, so something is animating",
+            still.pixels.count { (it ushr 24) != 0 },
+            hopped.pixels.count { (it ushr 24) != 0 },
+        )
+        assertTrue(
+            "the cat does not hop",
+            PixelArt.shifted(still, dx = 0, dy = -1).pixels.contentEquals(hopped.pixels),
+        )
+    }
+
+    @Test
+    fun `the cat looks at the player, not along his direction of travel`() {
+        // There is one face and it is the character. A profile or a back-of-head
+        // at this size read as a shape with a snout, not as a cat.
+        val perDirection = SpriteId.values().filter {
+            it.name.removePrefix("CAT_") in setOf("UP", "DOWN", "LEFT", "RIGHT")
         }
+        assertTrue("the cat still has per-direction faces: $perDirection", perDirection.isEmpty())
     }
 
     @Test
-    fun `the cat faces four different ways`() {
-        val distinct = CAT_FACING.map { source.sprite(it, 0).pixels.toList() }.distinct()
-        assertEquals("each direction must have its own face", 4, distinct.size)
-    }
-
-    @Test
-    fun `the cat has whiskers and a mouth on the faces that show one`() {
+    fun `the cat has ears, a pink nose, green eyes, whiskers and a closed mouth`() {
         val palette = TheCroncherPalette
-        for (id in listOf(SpriteId.CAT_RIGHT, SpriteId.CAT_LEFT, SpriteId.CAT_DOWN)) {
-            val used = colours(id)
-            assertTrue("$id has no whiskers", palette.highlight in used)
-            assertTrue("$id has no mouth", palette.catMouth in used)
-            assertTrue("$id has no muzzle", palette.catMuzzle in used)
-        }
+        val used = colours(SpriteId.CAT)
+        assertTrue("no fur", palette.catFur in used)
+        assertTrue("no ear lining", palette.catEarInner in used)
+        assertTrue("no eyes", palette.catEye in used)
+        assertTrue("no pupils", palette.catPupil in used)
+        assertTrue("no nose", palette.catNose in used)
+        assertTrue("no mouth", palette.catMouth in used)
+        assertTrue("no whiskers", palette.highlight in used)
     }
 
     @Test
-    fun `the cat has ears, a pink nose and green eyes in every direction it faces`() {
-        val palette = TheCroncherPalette
-        for (id in CAT_FACING) {
-            val used = colours(id, 0)
-            assertTrue("$id has no fur", palette.catFur in used)
-            assertTrue("$id has no ear lining", palette.catEarInner in used)
-            // Facing away, the eyes and nose are on the far side of the head.
-            if (id != SpriteId.CAT_UP) {
-                assertTrue("$id has no eyes", palette.catEye in used)
-                assertTrue("$id has no nose", palette.catNose in used)
-            }
+    fun `the whiskers stick out past the sides of his head`() {
+        // Whiskers painted on the cheeks disappear into the fur. They have to
+        // leave the silhouette to read as whiskers at all.
+        val cat = source.sprite(SpriteId.CAT, 0)
+        val edges = (0 until cat.height).flatMap { y ->
+            listOf(cat.pixelAt(0, y), cat.pixelAt(cat.width - 1, y))
         }
+        assertTrue(
+            "nothing reaches the edge of the sprite",
+            edges.any { it == TheCroncherPalette.highlight },
+        )
+        assertTrue(
+            "only the whiskers may reach the edge",
+            edges.all { it == Sprite.TRANSPARENT || it == TheCroncherPalette.highlight },
+        )
     }
 
     @Test
@@ -204,9 +211,4 @@ class SpriteSourceTest {
         assertEquals("two toys share their art", Toy.values().size, toys.distinct().size)
     }
 
-    private companion object {
-        val CAT_FACING = listOf(
-            SpriteId.CAT_RIGHT, SpriteId.CAT_LEFT, SpriteId.CAT_UP, SpriteId.CAT_DOWN,
-        )
-    }
 }

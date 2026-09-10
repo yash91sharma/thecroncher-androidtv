@@ -26,61 +26,25 @@ internal object CronchArt {
 
     // ---------------------------------------------------- the croncher --
 
-    val CAT_DOWN = listOf(
-        "................",
-        "..FF........FF..",
-        ".FEEF......FEEF.",
-        ".FEEFF....FFEEF.",
-        ".FFFFFFFFFFFFFF.",
-        ".FFFDFFDDFFDFFF.",
-        "FFFDDDFFFFDDDFFF",
-        "FFiYYFFFFFFiYYFF",
-        "FFYPYFFFFFFYPYFF",
-        "FFFFFFLNNLFFFFFF",
-        "FiiFFLLMMLLFFiiF",
-        "FFFFLLMLLMLLFFFF",
-        "FFiiFLLLLLLFiiFF",
-        ".FFFFFFFFFFFFFF.",
-        "..FFFFFFFFFFFF..",
-        "...FFFFFFFFFF...",
-    )
+    /** He always looks at the player; the walk is a one-pixel bounce. */
 
-    val CAT_RIGHT = listOf(
+    val CAT_FACE = listOf(
         "................",
-        "..FF........FF..",
-        ".FEEF......FEEF.",
-        ".FEEFF....FFEEF.",
-        ".FFFFFFFFFFFFFF.",
-        ".FFFDDFFDDFFFFF.",
-        "FFFDDDFFFFFFFFFF",
-        "FFFFiYYFFiYYFFFF",
-        "FFFFYPYFFYPYFFFF",
-        "FFFFFFFFFFLNNLFF",
-        "FFiiFFLLLLMMLLLF",
-        "FFFFFFLLLLMLLMLL",
-        "FFFiiFFLLLLLLLLF",
-        ".FFFFFFFFFFFFFF.",
+        "...F........F...",
+        "..FEF......FEF..",
+        "..FEEF....FEEF..",
+        "..FFFFFFFFFFFF..",
+        "..FFDFFDDFFDFF..",
+        ".FFFDDFFFFDDFFF.",
+        ".FiYYFFFFFFYYiF.",
+        ".FYPYFFFFFFYPYF.",
+        "..FFFFFNNFFFFF..",
+        "iiFFFFFMMFFFFFii",
+        "..FFFFMFFMFFFF..",
+        "iiFFFFFFFFFFFFii",
         "..FFFFFFFFFFFF..",
         "...FFFFFFFFFF...",
-    )
-
-    val CAT_UP = listOf(
-        "................",
-        "..FF........FF..",
-        ".FEEF......FEEF.",
-        ".FEEFF....FFEEF.",
-        ".FFFFFFFFFFFFFF.",
-        ".FFFDFFFFFFDFFF.",
-        "FFFDDDFFFFDDDFFF",
-        "FFFFDDFFFFDDFFFF",
-        "FFFFFDFFFFDFFFFF",
-        "FFFFFFDFFDFFFFFF",
-        "FFFFFFDDDDFFFFFF",
-        "FFFFFFFDDFFFFFFF",
-        "FFFFFFFFFFFFFFFF",
-        ".FFFFFFFFFFFFFF.",
-        "..FFFFFFFFFFFF..",
-        "...FFFFFFFFFF...",
+        "....FFFFFFFF....",
     )
 
     /** Dizzy eyes, painted over the cat as it faints. */
@@ -92,10 +56,10 @@ internal object CronchArt {
         "................",
         "................",
         "................",
-        "................",
         "FFPFPFFFFFFPFPFF",
         "FFFPFFFFFFFFPFFF",
         "FFPFPFFFFFFPFPFF",
+        "................",
         "................",
         "................",
         "................",

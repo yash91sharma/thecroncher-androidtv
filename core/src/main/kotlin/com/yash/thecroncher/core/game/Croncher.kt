@@ -34,15 +34,15 @@ class Croncher(maze: Maze) : Actor(maze) {
     }
 
     fun update() {
+        // A reversal is legal anywhere, so it is worth trying before moving.
         tryTurn(desiredDirection)
 
         val before = x to y
-        step()
+        // Everything else waits for the centre of a tile, which step() now hands
+        // us mid-tick — otherwise a queued turn would only land when a wall
+        // stopped him and snapped him back to a centre.
+        step { tryTurn(desiredDirection) }
         if (before != (x to y)) movingTicks++
-
-        // Check again on arrival: landing exactly on a junction this tick should
-        // take the queued turn now, not a whole tick later.
-        tryTurn(desiredDirection)
     }
 
     /** True when hard against a wall with nowhere to go. */

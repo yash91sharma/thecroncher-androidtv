@@ -77,7 +77,7 @@ class MenuScreen(
         val x = ((tick / 2) % period).toInt() - 32
         val y = 84
         val frame = ((tick / 6) % 2).toInt()
-        g.drawSpriteCentred(theme.sprites.sprite(SpriteId.CAT_RIGHT, frame), x, y)
+        g.drawSpriteCentred(theme.sprites.sprite(SpriteId.CAT, frame), x, y)
         for ((i, foe) in FoeCast.all.withIndex()) {
             g.drawSpriteCentred(
                 theme.sprites.sprite(foe.right, ((tick / 8) % 2).toInt()),

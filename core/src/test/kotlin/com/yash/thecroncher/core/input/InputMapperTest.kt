@@ -26,6 +26,16 @@ class InputMapperTest {
     // ------------------------------------------------------------ d-pad keys --
 
     @Test
+    fun `escape on a keyboard is the same as back on a remote`() {
+        // Playing on the emulator with a hardware keyboard, Esc arrives as
+        // KEYCODE_ESCAPE rather than the TV remote's BACK, and pause was dead.
+        assertEquals(
+            InputEvent.Press(Button.BACK),
+            mapper.onKey(KeyCodes.ESCAPE, down = true),
+        )
+    }
+
+    @Test
     fun `the d-pad keys map to the four directions`() {
         assertEquals(InputEvent.Move(Direction.UP), key(KeyCodes.DPAD_UP))
         assertEquals(InputEvent.Move(Direction.DOWN), key(KeyCodes.DPAD_DOWN))

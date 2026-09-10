@@ -9,14 +9,12 @@ package com.yash.thecroncher.core.theme
  */
 enum class SpriteId(val frameCount: Int) {
     /**
-     * The croncher himself. His face does not animate — he is a cat, and cats
-     * hold an expression. Frame 1 is the same face lifted a pixel, so walking
-     * gives him a bounce rather than a chewing motion.
+     * The croncher himself. One face, looking straight at the player whichever
+     * way he is running — his expression is the character, and turning it into a
+     * profile or the back of a head at sixteen pixels only made him hard to read.
+     * Frame 1 is that face lifted a pixel, so walking gives him a bounce.
      */
-    CAT_RIGHT(2),
-    CAT_LEFT(2),
-    CAT_UP(2),
-    CAT_DOWN(2),
+    CAT(2),
 
     /** Caught: the cat fizzles out in a puff of fur. */
     CAT_FAINT(11),

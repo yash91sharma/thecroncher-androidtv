@@ -121,7 +121,7 @@ def vector(width, height, body):
 
 
 def main():
-    cat = grid("CAT_DOWN")
+    cat = grid("CAT_FACE")
     colours = palette()
     font = glyphs()
     background = colours["background"]

@@ -27,6 +27,62 @@ class CroncherMovementTest {
         this.speed = speed
     }
 
+    /**
+     * The speeds the game actually runs at are not whole pixels per tick: level
+     * one is 80% of one pixel, which is 205 sub-pixel units against a tile of
+     * 2048. An actor moving at that speed passes *over* a tile centre without
+     * ever landing exactly on one, so anything that waits for an exact centre
+     * waits roughly for ever — the turn only happens when a wall stops him dead
+     * and snaps him back to the centre.
+     */
+    @Test
+    fun `turns at a junction even at a level speed that never lands on a centre`() {
+        val speed = speedOf(LevelTable.forLevel(1).croncherSpeed)
+        assertNotEquals("this test is pointless at a speed that divides a tile", 0, TILE_SUB % speed)
+
+        val junction = firstJunction(travel = Direction.LEFT, turn = Direction.UP)
+        val start = TilePos(junction.x + 3, junction.y)
+        val p = croncher(tile = start, facing = Direction.LEFT, speed = speed)
+
+        p.requestDirection(Direction.UP)
+        repeat(40) { p.update() }
+
+        assertEquals("he never took the turn", Direction.UP, p.direction)
+        assertTrue("he should be above the junction by now", p.tile().y < junction.y)
+    }
+
+    @Test
+    fun `a queued turn is taken at the junction, not three tiles later`() {
+        val speed = speedOf(LevelTable.forLevel(1).croncherSpeed)
+        val junction = firstJunction(travel = Direction.LEFT, turn = Direction.UP)
+        val p = croncher(tile = TilePos(junction.x + 3, junction.y), facing = Direction.LEFT, speed = speed)
+
+        p.requestDirection(Direction.UP)
+        var turnedAt: TilePos? = null
+        repeat(40) {
+            p.update()
+            if (turnedAt == null && p.direction == Direction.UP) turnedAt = p.tile()
+        }
+        assertEquals("the turn was taken in the wrong tile", junction, turnedAt)
+    }
+
+    /** A tile you can travel through and also turn out of, for the turn tests. */
+    private fun firstJunction(travel: Direction, turn: Direction): TilePos {
+        for (y in 0 until maze.height) {
+            for (x in 0 until maze.width) {
+                if (!maze.isWalkable(x, y)) continue
+                if (!maze.isWalkable(x + travel.dx, y + travel.dy)) continue
+                if (!maze.isWalkable(x - travel.dx, y - travel.dy)) continue
+                if (!maze.isWalkable(x + turn.dx, y + turn.dy)) continue
+                // needs room to run up to it, all on one row
+                if ((1..3).all { maze.isWalkable(x - travel.dx * it, y - travel.dy * it) }) {
+                    return TilePos(x, y)
+                }
+            }
+        }
+        throw AssertionError("no junction found in the maze")
+    }
+
     @Test
     fun `starts centred on its tile`() {
         val p = croncher()
