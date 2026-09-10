@@ -175,7 +175,7 @@ class DeterministicGameTest {
         // Every trajectory in the game changes with either; the guard tests above
         // (it still eats, still dies, nobody ends up inside a wall) are what say
         // the new trajectory is a real game rather than a broken one.
-        const val GOLDEN_10K = 1741107866118339316L
-        const val GOLDEN_30K = -2086711891087191130L
+        const val GOLDEN_10K = -4443592732701659140L
+        const val GOLDEN_30K = -2611709635606422121L
     }
 }

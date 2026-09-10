@@ -67,29 +67,58 @@ class CroncherMovementTest {
     }
 
     @Test
-    fun `turns at a T-junction when requested after passing the tile centre`() {
+    fun `turns at a T-junction smoothly without instantaneous backward snap`() {
         val junction = firstJunction(travel = Direction.LEFT, turn = Direction.UP)
-        val p = croncher(tile = junction, facing = Direction.LEFT)
+        val p = croncher(tile = junction, facing = Direction.LEFT, speed = FULL_SPEED)
+        val center = tileCentreSub(junction.x)
         // 2 pixels past the tile centre along travel direction:
-        p.x -= 2 * SUBPIXEL
+        p.x = center - 2 * SUBPIXEL
         p.requestDirection(Direction.UP)
         p.update()
 
         assertEquals("should have taken the turn despite being past the centre", Direction.UP, p.direction)
-        assertEquals("should be aligned with the vertical corridor", tileCentreSub(junction.x), p.x)
+        // Does NOT teleport 2 pixels backward instantaneously:
+        assertEquals("should glide smoothly towards centre on tick 1", center - 1 * SUBPIXEL, p.x)
+        p.update()
+        assertEquals("should reach corridor centre on tick 2", center, p.x)
     }
 
     @Test
     fun `turns at a T-junction when requested at the edge of the junction tile`() {
         val junction = firstJunction(travel = Direction.LEFT, turn = Direction.UP)
-        val p = croncher(tile = junction, facing = Direction.LEFT)
+        val p = croncher(tile = junction, facing = Direction.LEFT, speed = FULL_SPEED)
+        val center = tileCentreSub(junction.x)
         // 4 pixels past the tile centre (far edge of the 8px tile):
-        p.x -= 4 * SUBPIXEL
+        p.x = center - 4 * SUBPIXEL
         p.requestDirection(Direction.UP)
         p.update()
 
         assertEquals("should turn even at the tile edge", Direction.UP, p.direction)
-        assertEquals("should be aligned with the vertical corridor", tileCentreSub(junction.x), p.x)
+        repeat(4) { p.update() }
+        assertEquals("should smoothly converge to corridor centre", center, p.x)
+    }
+
+    @Test
+    fun `turns at a T-junction when requested up to 8 pixels past center (1 full tile)`() {
+        val junction = firstJunction(travel = Direction.LEFT, turn = Direction.UP)
+        val p = croncher(tile = junction, facing = Direction.LEFT, speed = FULL_SPEED)
+        val center = tileCentreSub(junction.x)
+        // 6 pixels past the tile centre:
+        p.x = center - 6 * SUBPIXEL
+        p.requestDirection(Direction.UP)
+        p.update()
+        assertEquals("should turn at 6 pixels past centre", Direction.UP, p.direction)
+        repeat(6) { p.update() }
+        assertEquals(center, p.x)
+
+        // 8 pixels past the tile centre (full tile tolerance):
+        val p2 = croncher(tile = junction, facing = Direction.LEFT, speed = FULL_SPEED)
+        p2.x = center - 8 * SUBPIXEL
+        p2.requestDirection(Direction.UP)
+        p2.update()
+        assertEquals("should turn at 8 pixels past centre", Direction.UP, p2.direction)
+        repeat(8) { p2.update() }
+        assertEquals(center, p2.x)
     }
 
     /**

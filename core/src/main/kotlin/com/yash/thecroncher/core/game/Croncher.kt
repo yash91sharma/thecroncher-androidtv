@@ -16,17 +16,22 @@ class Croncher(maze: Maze) : Actor(maze) {
     var movingTicks: Long = 0
         private set
 
+    /** Centerline of the corridor we are currently gliding into, if cornering smoothly. */
+    private var alignTarget: Int? = null
+
     fun reset(speed: Int = FULL_SPEED) {
         placeAtTileCentre(Maze.CRONCHER_START_TILE, Direction.LEFT)
         desiredDirection = Direction.LEFT
         this.speed = speed
         movingTicks = 0
+        alignTarget = null
     }
 
     /** Placing him also clears any queued turn, so he cannot instantly reverse. */
     override fun placeAtTileCentre(tile: TilePos, facing: Direction) {
         super.placeAtTileCentre(tile, facing)
         desiredDirection = facing
+        alignTarget = null
     }
 
     fun requestDirection(dir: Direction) {
@@ -42,6 +47,22 @@ class Croncher(maze: Maze) : Actor(maze) {
         // us mid-tick — otherwise a queued turn would only land when a wall
         // stopped him and snapped him back to a centre.
         step { tryTurn(desiredDirection) }
+
+        // Perpendicular diagonal glide towards corridor centerline (arcade 45° cornering):
+        alignTarget?.let { target ->
+            if (direction.dx != 0) {
+                val diff = target - y
+                val delta = diff.coerceIn(-speed, speed)
+                y += delta
+                if (y == target) alignTarget = null
+            } else {
+                val diff = target - x
+                val delta = diff.coerceIn(-speed, speed)
+                x += delta
+                if (x == target) alignTarget = null
+            }
+        }
+
         if (before != (x to y)) movingTicks++
     }
 
@@ -49,8 +70,12 @@ class Croncher(maze: Maze) : Actor(maze) {
     fun isStuck(): Boolean = !neighbourIsOpen(direction) && isAtTileCentre()
 
     override fun tryTurn(desired: Direction): Boolean {
+        if (desired == direction.opposite) {
+            alignTarget = null
+            return super.tryTurn(desired)
+        }
         if (super.tryTurn(desired)) return true
-        if (desired == direction || desired == direction.opposite) return false
+        if (desired == direction) return false
 
         // Cornering tolerance: allow reactive post-turns within a window matching
         // the original arcade Pac-Man hardware's cornering mechanics.
@@ -73,20 +98,32 @@ class Croncher(maze: Maze) : Actor(maze) {
     }
 
     private fun alignToCorridor(junction: TilePos, newDirection: Direction) {
-        if (direction.dx != 0) {
-            x = tileCentreSub(junction.x)
-        } else {
-            y = tileCentreSub(junction.y)
-        }
         direction = newDirection
+        if (newDirection.dx != 0) {
+            val target = tileCentreSub(junction.y)
+            if (y == target) {
+                alignTarget = null
+            } else {
+                alignTarget = target
+                y = y.coerceIn(junction.y * TILE_SUB, (junction.y + 1) * TILE_SUB - 1)
+            }
+        } else {
+            val target = tileCentreSub(junction.x)
+            if (x == target) {
+                alignTarget = null
+            } else {
+                alignTarget = target
+                x = x.coerceIn(junction.x * TILE_SUB, (junction.x + 1) * TILE_SUB - 1)
+            }
+        }
     }
 
     companion object {
         /**
-         * Cornering tolerance: 4 pixels (1024 subpixels = half a tile), plus 1 pixel
-         * grace for reactive turns just crossing the tile threshold. Matches the
-         * 3-4 pixel pre/post-turn cornering window from the original Pac-Man arcade hardware.
+         * Cornering tolerance: 8 pixels (2048 subpixels = 1 full tile).
+         * Provides an organic, comfortable timing window (~133-166 ms post-center)
+         * suitable for modern TV remotes and controllers with Bluetooth latency.
          */
-        const val CORNERING_TOLERANCE = HALF_TILE_SUB + SUBPIXEL
+        const val CORNERING_TOLERANCE = TILE_SUB
     }
 }
