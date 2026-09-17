@@ -78,7 +78,7 @@ class GameState(
 
     fun ghost(kind: GhostKind): Ghost = ghosts.first { it.kind == kind }
 
-    /** True while the blue ghosts should be flashing their warning. */
+    /** True while the frightened ghosts should be flashing their warning. */
     val isFrightFlashing: Boolean
         get() = frightTicksRemaining in 1..FLASH_WARNING_TICKS
 
@@ -152,7 +152,7 @@ class GameState(
         val ctx = Ghost.GhostContext(
             croncherTile = croncher.tile(),
             croncherDirection = croncher.direction,
-            blinkyTile = ghost(GhostKind.BLINKY).tile(),
+            chaserTile = ghost(GhostKind.CHASER).tile(),
             scheduleMode = scheduleMode,
             rng = rng,
         )
@@ -348,7 +348,7 @@ class GameState(
         const val DYING_TICKS = 2 * TICKS_PER_SECOND
         const val LEVEL_END_TICKS = 2 * TICKS_PER_SECOND
 
-        /** Blue ghosts start flashing with this long left. */
+        /** Frightened ghosts start flashing with this long left. */
         const val FLASH_WARNING_TICKS = 2 * TICKS_PER_SECOND
 
         /** Eyes travel fast — they are not a threat and should not dawdle. */
@@ -356,10 +356,10 @@ class GameState(
 
         /** Dots eaten before each ghost is let out (level one values). */
         fun houseDotLimit(kind: GhostKind): Int = when (kind) {
-            GhostKind.BLINKY -> 0
-            GhostKind.PINKY -> 0
-            GhostKind.INKY -> 30
-            GhostKind.CLYDE -> 60
+            GhostKind.CHASER -> 0
+            GhostKind.AMBUSHER -> 0
+            GhostKind.FLANKER -> 30
+            GhostKind.COWARD -> 60
         }
 
         /** Toy appears after this many dots, twice per level. */

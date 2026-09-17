@@ -31,8 +31,8 @@ class CollisionTest {
     fun `a hunting ghost costs a life`() {
         val g = game()
         val livesBefore = g.lives
-        g.ghost(GhostKind.BLINKY).applyScheduleMode(GhostMode.CHASE)
-        g.collide(GhostKind.BLINKY)
+        g.ghost(GhostKind.CHASER).applyScheduleMode(GhostMode.CHASE)
+        g.collide(GhostKind.CHASER)
         g.tick()
         assertEquals(livesBefore - 1, g.lives)
         assertEquals(GamePhase.DYING, g.phase)
@@ -46,11 +46,11 @@ class CollisionTest {
         g.tick()                                    // eats the energizer
         val scoreAfterEnergizer = g.score
 
-        g.collide(GhostKind.BLINKY)
+        g.collide(GhostKind.CHASER)
         g.tick()
 
         assertEquals(scoreAfterEnergizer + 200, g.score)
-        assertEquals(GhostMode.EATEN, g.ghost(GhostKind.BLINKY).mode)
+        assertEquals(GhostMode.EATEN, g.ghost(GhostKind.CHASER).mode)
         assertNotEquals("must not cost a life", GamePhase.DYING, g.phase)
     }
 
@@ -80,8 +80,8 @@ class CollisionTest {
     fun `a pair of eyes is harmless to walk through`() {
         val g = game()
         val livesBefore = g.lives
-        g.ghost(GhostKind.BLINKY).getEaten()
-        g.collide(GhostKind.BLINKY)
+        g.ghost(GhostKind.CHASER).getEaten()
+        g.collide(GhostKind.CHASER)
         g.tick()
         assertEquals(livesBefore, g.lives)
         assertNotEquals(GamePhase.DYING, g.phase)
@@ -91,9 +91,9 @@ class CollisionTest {
     fun `ghosts still in the house cannot catch anyone`() {
         val g = game()
         val livesBefore = g.lives
-        val clyde = g.ghost(GhostKind.CLYDE)
-        assertTrue(clyde.mode.isInsideHouse)
-        clyde.placeAtTileCentre(g.croncher.tile(), Direction.LEFT)
+        val coward = g.ghost(GhostKind.COWARD)
+        assertTrue(coward.mode.isInsideHouse)
+        coward.placeAtTileCentre(g.croncher.tile(), Direction.LEFT)
         g.tick()
         assertEquals(livesBefore, g.lives)
     }
@@ -104,8 +104,8 @@ class CollisionTest {
         var guard = 0
         while (g.phase != GamePhase.GAME_OVER && guard++ < 20) {
             if (g.phase == GamePhase.PLAYING) {
-                g.ghost(GhostKind.BLINKY).applyScheduleMode(GhostMode.CHASE)
-                g.collide(GhostKind.BLINKY)
+                g.ghost(GhostKind.CHASER).applyScheduleMode(GhostMode.CHASE)
+                g.collide(GhostKind.CHASER)
             }
             repeat(GameState.DYING_TICKS + GameState.READY_TICKS + 2) { g.tick() }
         }

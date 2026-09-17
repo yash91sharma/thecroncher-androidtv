@@ -1,11 +1,21 @@
 package com.yash.thecroncher.core.game
 
-/** The four ghosts. Order matters: it is also their release order from the house. */
+/**
+ * The four ghosts, named for how they hunt. Order matters: it is also their release
+ * order from the house.
+ */
 enum class GhostKind {
-    BLINKY,
-    PINKY,
-    INKY,
-    CLYDE,
+    /** Aims straight at the croncher. Starts outside the house. */
+    CHASER,
+
+    /** Aims a few tiles ahead of the croncher, to cut it off. */
+    AMBUSHER,
+
+    /** Aims by doubling the chaser's line through the croncher, closing from the far side. */
+    FLANKER,
+
+    /** Chases from a distance but loses its nerve up close and runs for its corner. */
+    COWARD,
 }
 
 /** What a ghost is currently doing. */
@@ -16,7 +26,7 @@ enum class GhostMode {
     /** Hunting, each by its own rule. */
     CHASE,
 
-    /** Blue, slow, and edible. */
+    /** Recoloured, slow, and edible. */
     FRIGHTENED,
 
     /** Eaten: a pair of eyes hurrying back to the house. */

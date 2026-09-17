@@ -66,7 +66,7 @@ object PixelArt {
         return Sprite(sprite.width, sprite.height, pixels)
     }
 
-    /** The shape only, in one flat colour. How a foe turns harmless-blue. */
+    /** The shape only, in one flat colour. How a foe turns harmless. */
     fun silhouette(sprite: Sprite, colour: Int): Sprite {
         val pixels = IntArray(sprite.pixels.size)
         for (i in pixels.indices) {

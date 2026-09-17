@@ -89,7 +89,7 @@ class CronchSpriteSource(private val palette: SpritePalette) : SpriteSource {
         if (frame == 0) sprite else PixelArt.shifted(sprite, dx = 0, dy = -1)
 
     /**
-     * Blue and harmless, with a wobbly face. The face is painted only where the
+     * Recoloured and harmless, with a wobbly face. The face is painted only where the
      * foe already is, so a vacuum stays a vacuum and nothing floats beside it.
      */
     private fun scared(rows: List<String>, flashing: Boolean): Sprite {

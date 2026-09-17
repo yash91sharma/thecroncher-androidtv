@@ -13,92 +13,92 @@ import org.junit.Test
 class GhostTargetTest {
 
     private val cat = TilePos(13, 23)
-    private val blinkyAt = TilePos(13, 11)
+    private val chaserAt = TilePos(13, 11)
 
     private fun chase(kind: GhostKind, catDir: Direction, ghostAt: TilePos = TilePos(1, 1)) =
-        GhostAi.chaseTarget(kind, cat, catDir, blinkyAt, ghostAt)
+        GhostAi.chaseTarget(kind, cat, catDir, chaserAt, ghostAt)
 
-    // ------------------------------------------------------------- Blinky --
+    // ------------------------------------------------------------- Chaser --
 
     @Test
-    fun `blinky simply aims at croncher`() {
-        assertEquals(cat, chase(GhostKind.BLINKY, Direction.LEFT))
-        assertEquals(cat, chase(GhostKind.BLINKY, Direction.UP))
+    fun `chaser simply aims at croncher`() {
+        assertEquals(cat, chase(GhostKind.CHASER, Direction.LEFT))
+        assertEquals(cat, chase(GhostKind.CHASER, Direction.UP))
     }
 
-    // -------------------------------------------------------------- Pinky --
+    // ----------------------------------------------------------- Ambusher --
 
     @Test
-    fun `pinky aims four tiles ahead`() {
-        assertEquals(TilePos(9, 23), chase(GhostKind.PINKY, Direction.LEFT))
-        assertEquals(TilePos(17, 23), chase(GhostKind.PINKY, Direction.RIGHT))
-        assertEquals(TilePos(13, 27), chase(GhostKind.PINKY, Direction.DOWN))
+    fun `ambusher aims four tiles ahead`() {
+        assertEquals(TilePos(9, 23), chase(GhostKind.AMBUSHER, Direction.LEFT))
+        assertEquals(TilePos(17, 23), chase(GhostKind.AMBUSHER, Direction.RIGHT))
+        assertEquals(TilePos(13, 27), chase(GhostKind.AMBUSHER, Direction.DOWN))
     }
 
     @Test
-    fun `pinky keeps the original up-direction overflow quirk`() {
+    fun `ambusher keeps the original up-direction overflow quirk`() {
         // The 1980 code added the offset to both axes when the croncher faced up. It is
         // a bug, it is famous, and removing it changes how the game plays — so it
         // stays.
-        assertEquals(TilePos(9, 19), chase(GhostKind.PINKY, Direction.UP))
+        assertEquals(TilePos(9, 19), chase(GhostKind.AMBUSHER, Direction.UP))
     }
 
-    // --------------------------------------------------------------- Inky --
+    // ------------------------------------------------------------ Flanker --
 
     @Test
-    fun `inky doubles the vector from blinky through the point ahead of croncher`() {
-        // Two ahead of the croncher facing left is (11,23); doubling from Blinky at
+    fun `flanker doubles the vector from chaser through the point ahead of croncher`() {
+        // Two ahead of the croncher facing left is (11,23); doubling from the chaser at
         // (13,11) gives (2*11-13, 2*23-11) = (9,35).
-        assertEquals(TilePos(9, 35), chase(GhostKind.INKY, Direction.LEFT))
+        assertEquals(TilePos(9, 35), chase(GhostKind.FLANKER, Direction.LEFT))
     }
 
     @Test
-    fun `inky inherits the same up-direction quirk`() {
+    fun `flanker inherits the same up-direction quirk`() {
         // Two ahead facing up is (11,21) thanks to the overflow, so the doubled
         // vector from (13,11) is (9,31).
-        assertEquals(TilePos(9, 31), chase(GhostKind.INKY, Direction.UP))
+        assertEquals(TilePos(9, 31), chase(GhostKind.FLANKER, Direction.UP))
     }
 
     @Test
-    fun `inky's target moves when blinky moves`() {
-        val a = GhostAi.chaseTarget(GhostKind.INKY, cat, Direction.LEFT, TilePos(13, 11), TilePos(1, 1))
-        val b = GhostAi.chaseTarget(GhostKind.INKY, cat, Direction.LEFT, TilePos(20, 5), TilePos(1, 1))
-        assertNotEquals("inky must depend on blinky's position", a, b)
+    fun `flanker's target moves when chaser moves`() {
+        val a = GhostAi.chaseTarget(GhostKind.FLANKER, cat, Direction.LEFT, TilePos(13, 11), TilePos(1, 1))
+        val b = GhostAi.chaseTarget(GhostKind.FLANKER, cat, Direction.LEFT, TilePos(20, 5), TilePos(1, 1))
+        assertNotEquals("flanker must depend on chaser's position", a, b)
     }
 
-    // -------------------------------------------------------------- Clyde --
+    // ------------------------------------------------------------- Coward --
 
     @Test
-    fun `clyde chases while he is more than eight tiles away`() {
+    fun `coward chases while he is more than eight tiles away`() {
         val far = TilePos(1, 29)   // well over eight tiles from (13,23)
-        assertEquals(cat, chase(GhostKind.CLYDE, Direction.LEFT, ghostAt = far))
+        assertEquals(cat, chase(GhostKind.COWARD, Direction.LEFT, ghostAt = far))
     }
 
     @Test
-    fun `clyde loses his nerve within eight tiles and heads for his corner`() {
+    fun `coward loses his nerve within eight tiles and heads for his corner`() {
         val near = TilePos(13, 25)
-        assertEquals(Maze.SCATTER_CLYDE, chase(GhostKind.CLYDE, Direction.LEFT, ghostAt = near))
+        assertEquals(Maze.SCATTER_COWARD, chase(GhostKind.COWARD, Direction.LEFT, ghostAt = near))
     }
 
     @Test
-    fun `clyde's eight-tile boundary is tested on both sides`() {
+    fun `coward's eight-tile boundary is tested on both sides`() {
         // Exactly eight tiles away counts as "near" — the arcade compares against
         // eight, not more-than-eight.
         val exactlyEight = TilePos(5, 23)
-        assertEquals(Maze.SCATTER_CLYDE, chase(GhostKind.CLYDE, Direction.LEFT, ghostAt = exactlyEight))
+        assertEquals(Maze.SCATTER_COWARD, chase(GhostKind.COWARD, Direction.LEFT, ghostAt = exactlyEight))
 
         val justOver = TilePos(4, 23)
-        assertEquals(cat, chase(GhostKind.CLYDE, Direction.LEFT, ghostAt = justOver))
+        assertEquals(cat, chase(GhostKind.COWARD, Direction.LEFT, ghostAt = justOver))
     }
 
     // ------------------------------------------------------------ Scatter --
 
     @Test
     fun `each ghost scatters to its own corner`() {
-        assertEquals(Maze.SCATTER_BLINKY, GhostAi.scatterTarget(GhostKind.BLINKY))
-        assertEquals(Maze.SCATTER_PINKY, GhostAi.scatterTarget(GhostKind.PINKY))
-        assertEquals(Maze.SCATTER_INKY, GhostAi.scatterTarget(GhostKind.INKY))
-        assertEquals(Maze.SCATTER_CLYDE, GhostAi.scatterTarget(GhostKind.CLYDE))
+        assertEquals(Maze.SCATTER_CHASER, GhostAi.scatterTarget(GhostKind.CHASER))
+        assertEquals(Maze.SCATTER_AMBUSHER, GhostAi.scatterTarget(GhostKind.AMBUSHER))
+        assertEquals(Maze.SCATTER_FLANKER, GhostAi.scatterTarget(GhostKind.FLANKER))
+        assertEquals(Maze.SCATTER_COWARD, GhostAi.scatterTarget(GhostKind.COWARD))
     }
 
     @Test

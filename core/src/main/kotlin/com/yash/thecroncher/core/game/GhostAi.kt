@@ -29,14 +29,14 @@ object GhostAi {
         TilePos(33, 17),
     )
 
-    /** Clyde turns tail inside this radius. Compared squared, to avoid a sqrt. */
-    private const val CLYDE_PANIC_DISTANCE_SQUARED = 8 * 8
+    /** The coward turns tail inside this radius. Compared squared, to avoid a sqrt. */
+    private const val COWARD_PANIC_DISTANCE_SQUARED = 8 * 8
 
     fun scatterTarget(kind: GhostKind): TilePos = when (kind) {
-        GhostKind.BLINKY -> Maze.SCATTER_BLINKY
-        GhostKind.PINKY -> Maze.SCATTER_PINKY
-        GhostKind.INKY -> Maze.SCATTER_INKY
-        GhostKind.CLYDE -> Maze.SCATTER_CLYDE
+        GhostKind.CHASER -> Maze.SCATTER_CHASER
+        GhostKind.AMBUSHER -> Maze.SCATTER_AMBUSHER
+        GhostKind.FLANKER -> Maze.SCATTER_FLANKER
+        GhostKind.COWARD -> Maze.SCATTER_COWARD
     }
 
     /**
@@ -49,29 +49,29 @@ object GhostAi {
         kind: GhostKind,
         croncherTile: TilePos,
         croncherDirection: Direction,
-        blinkyTile: TilePos,
+        chaserTile: TilePos,
         ghostTile: TilePos,
     ): TilePos = when (kind) {
 
         // Straight at him.
-        GhostKind.BLINKY -> croncherTile
+        GhostKind.CHASER -> croncherTile
 
         // Four tiles in front, to cut him off.
-        GhostKind.PINKY -> ahead(croncherTile, croncherDirection, 4)
+        GhostKind.AMBUSHER -> ahead(croncherTile, croncherDirection, 4)
 
-        // The vector from Blinky to two tiles ahead of the croncher, doubled — which is why
-        // Inky is only dangerous when Blinky is close.
-        GhostKind.INKY -> {
+        // The vector from the chaser to two tiles ahead of the croncher, doubled — which is why
+        // the flanker is only dangerous when the chaser is close.
+        GhostKind.FLANKER -> {
             val pivot = ahead(croncherTile, croncherDirection, 2)
-            TilePos(2 * pivot.x - blinkyTile.x, 2 * pivot.y - blinkyTile.y)
+            TilePos(2 * pivot.x - chaserTile.x, 2 * pivot.y - chaserTile.y)
         }
 
         // Bold at a distance, shy up close.
-        GhostKind.CLYDE ->
-            if (ghostTile.squaredDistanceTo(croncherTile) > CLYDE_PANIC_DISTANCE_SQUARED) {
+        GhostKind.COWARD ->
+            if (ghostTile.squaredDistanceTo(croncherTile) > COWARD_PANIC_DISTANCE_SQUARED) {
                 croncherTile
             } else {
-                Maze.SCATTER_CLYDE
+                Maze.SCATTER_COWARD
             }
     }
 
@@ -79,8 +79,8 @@ object GhostAi {
      * [distance] tiles in front of the croncher — reproducing the original overflow
      * bug, which also shifted the target left whenever he faced up.
      *
-     * This is not an accident being preserved for nostalgia's sake: Pinky's and
-     * Inky's whole character depends on it, and "fixing" it makes them behave
+     * This is not an accident being preserved for nostalgia's sake: the ambusher's
+     * and flanker's whole character depends on it, and "fixing" it makes them behave
      * like different ghosts entirely.
      */
     private fun ahead(from: TilePos, direction: Direction, distance: Int): TilePos =

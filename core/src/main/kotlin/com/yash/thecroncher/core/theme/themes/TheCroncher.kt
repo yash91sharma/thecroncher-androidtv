@@ -47,8 +47,8 @@ val TheCroncherPalette = SpritePalette(
 
     puffBody = 0xFFD8D8E8.toInt(),
     puffShade = 0xFF9A9AB0.toInt(),
-    scaredBody = 0xFF3B4CE0.toInt(),
-    scaredFace = 0xFFFFD6E0.toInt(),
+    scaredBody = 0xFFD338B5.toInt(),
+    scaredFace = 0xFFFFF0F8.toInt(),
     flashBody = 0xFFE8E8F5.toInt(),
     flashFace = 0xFFE04A4A.toInt(),
 

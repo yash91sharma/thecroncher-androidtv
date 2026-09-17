@@ -177,7 +177,7 @@ class SpriteSourceTest {
                 scared.pixels.count { (it ushr 24) != 0 },
             )
             assertTrue(
-                "${foe.id} is not scared-blue when frightened",
+                "${foe.id} does not take the scared tint when frightened",
                 TheCroncherPalette.scaredBody in colours(foe.scared),
             )
             assertTrue(

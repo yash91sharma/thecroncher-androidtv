@@ -31,18 +31,18 @@ class Ghost(
      * moves them with it.
      */
     private val homeTile: TilePos = when (kind) {
-        GhostKind.BLINKY -> Maze.BLINKY_START_TILE
-        GhostKind.PINKY -> Maze.HOUSE_CENTRE_TILE
-        GhostKind.INKY -> TilePos(Maze.HOUSE_CENTRE_TILE.x - 1, Maze.HOUSE_CENTRE_TILE.y)
-        GhostKind.CLYDE -> TilePos(Maze.HOUSE_CENTRE_TILE.x + 2, Maze.HOUSE_CENTRE_TILE.y)
+        GhostKind.CHASER -> Maze.HOUSE_EXIT_TILE
+        GhostKind.AMBUSHER -> Maze.HOUSE_CENTRE_TILE
+        GhostKind.FLANKER -> TilePos(Maze.HOUSE_CENTRE_TILE.x - 1, Maze.HOUSE_CENTRE_TILE.y)
+        GhostKind.COWARD -> TilePos(Maze.HOUSE_CENTRE_TILE.x + 2, Maze.HOUSE_CENTRE_TILE.y)
     }
 
     /** Ghosts may use the door and the house; the croncher may not. */
     override fun canEnter(x: Int, y: Int): Boolean = maze.isGhostWalkable(x, y)
 
     fun reset() {
-        placeAtTileCentre(homeTile, if (kind == GhostKind.BLINKY) Direction.LEFT else Direction.UP)
-        mode = if (kind == GhostKind.BLINKY) GhostMode.SCATTER else GhostMode.IN_HOUSE
+        placeAtTileCentre(homeTile, if (kind == GhostKind.CHASER) Direction.LEFT else Direction.UP)
+        mode = if (kind == GhostKind.CHASER) GhostMode.SCATTER else GhostMode.IN_HOUSE
         reversePending = false
     }
 
@@ -109,7 +109,7 @@ class Ghost(
 
     /** Slide to the door column, then straight up and out. */
     private fun walkOutOfHouse(ctx: GhostContext) {
-        val exit = Maze.BLINKY_START_TILE
+        val exit = Maze.HOUSE_EXIT_TILE
         val targetX = tileCentreSub(exit.x)
 
         if (x != targetX) {
@@ -128,7 +128,7 @@ class Ghost(
 
     /** Eyes hurrying home: back to the door, then down into the house. */
     private fun returnHome(ctx: GhostContext) {
-        val door = Maze.BLINKY_START_TILE
+        val door = Maze.HOUSE_EXIT_TILE
         val atDoorColumn = x == tileCentreSub(door.x)
         val aboveHouse = y <= tileCentreSub(door.y)
 
@@ -167,7 +167,7 @@ class Ghost(
             kind = kind,
             croncherTile = ctx.croncherTile,
             croncherDirection = ctx.croncherDirection,
-            blinkyTile = ctx.blinkyTile,
+            chaserTile = ctx.chaserTile,
             ghostTile = tile(),
         )
     }
@@ -209,7 +209,7 @@ class Ghost(
     data class GhostContext(
         val croncherTile: TilePos,
         val croncherDirection: Direction,
-        val blinkyTile: TilePos,
+        val chaserTile: TilePos,
         val scheduleMode: GhostMode,
         val rng: Rng,
     )

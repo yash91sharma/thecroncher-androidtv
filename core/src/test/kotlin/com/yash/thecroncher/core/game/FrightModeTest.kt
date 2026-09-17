@@ -63,10 +63,10 @@ class FrightModeTest {
     @Test
     fun `the energizer makes ghosts turn around`() {
         val g = game()
-        val blinky = g.ghost(GhostKind.BLINKY)
-        val before = blinky.direction
+        val chaser = g.ghost(GhostKind.CHASER)
+        val before = chaser.direction
         g.takeEnergizer()
-        assertNotEquals("blinky should have reversed", before, blinky.direction)
+        assertNotEquals("chaser should have reversed", before, chaser.direction)
     }
 
     @Test

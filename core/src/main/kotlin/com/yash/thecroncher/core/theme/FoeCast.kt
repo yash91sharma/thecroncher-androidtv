@@ -65,7 +65,7 @@ object FoeCast {
         scaredFlash = SpriteId.CUCUMBER_SCARED_FLASH,
     )
 
-    /** In ghost order: the dog leads, exactly as Blinky always did. */
+    /** In ghost order: the dog wears the chaser, which is the one that starts outside. */
     val all: List<FoeArt> = listOf(DOG, VACUUM, SPRAY, CUCUMBER)
 
     /** The art for ghost slot [index]; wraps so an extra ghost cannot crash a draw. */

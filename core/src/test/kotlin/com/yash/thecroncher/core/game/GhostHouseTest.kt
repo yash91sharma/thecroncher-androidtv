@@ -20,63 +20,63 @@ class GhostHouseTest {
     ).apply { startNewGame() }
 
     @Test
-    fun `blinky begins outside and the other three begin inside`() {
+    fun `chaser begins outside and the other three begin inside`() {
         val g = newGame()
-        assertFalse(g.ghost(GhostKind.BLINKY).mode.isInsideHouse)
-        for (kind in listOf(GhostKind.PINKY, GhostKind.INKY, GhostKind.CLYDE)) {
+        assertFalse(g.ghost(GhostKind.CHASER).mode.isInsideHouse)
+        for (kind in listOf(GhostKind.AMBUSHER, GhostKind.FLANKER, GhostKind.COWARD)) {
             assertTrue("$kind should start in the house", g.ghost(kind).mode.isInsideHouse)
         }
     }
 
     @Test
-    fun `the dot thresholds are pinky zero, inky thirty, clyde sixty`() {
-        assertEquals(0, GameState.houseDotLimit(GhostKind.PINKY))
-        assertEquals(30, GameState.houseDotLimit(GhostKind.INKY))
-        assertEquals(60, GameState.houseDotLimit(GhostKind.CLYDE))
+    fun `the dot thresholds are ambusher zero, flanker thirty, coward sixty`() {
+        assertEquals(0, GameState.houseDotLimit(GhostKind.AMBUSHER))
+        assertEquals(30, GameState.houseDotLimit(GhostKind.FLANKER))
+        assertEquals(60, GameState.houseDotLimit(GhostKind.COWARD))
     }
 
     @Test
-    fun `pinky is released straight away`() {
+    fun `ambusher is released straight away`() {
         val g = newGame()
         repeat(GameState.READY_TICKS + 240) { g.tick() }
-        assertFalse("pinky should be out by now", g.ghost(GhostKind.PINKY).mode.isInsideHouse)
+        assertFalse("ambusher should be out by now", g.ghost(GhostKind.AMBUSHER).mode.isInsideHouse)
     }
 
     @Test
-    fun `inky waits for thirty dots and clyde for sixty`() {
+    fun `flanker waits for thirty dots and coward for sixty`() {
         val g = newGame()
         repeat(GameState.READY_TICKS) { g.tick() }
 
         g.debugSetDotsEaten(29)
         repeat(120) { g.tick() }
-        assertTrue("inky must still be waiting at 29 dots",
-            g.ghost(GhostKind.INKY).mode.isInsideHouse || g.dotsEaten >= 30)
+        assertTrue("flanker must still be waiting at 29 dots",
+            g.ghost(GhostKind.FLANKER).mode.isInsideHouse || g.dotsEaten >= 30)
 
         // Asked "did he ever get out", not "is he out now": the croncher is
         // standing still in his pocket, so a ghost eventually catches him and the
         // whole cast is put back in the house.
         g.debugSetDotsEaten(60)
-        var clydeGotOut = false
+        var cowardGotOut = false
         repeat(600) {
             g.tick()
-            if (!g.ghost(GhostKind.CLYDE).mode.isInsideHouse) clydeGotOut = true
+            if (!g.ghost(GhostKind.COWARD).mode.isInsideHouse) cowardGotOut = true
         }
-        assertTrue("clyde should be out at 60 dots", clydeGotOut)
+        assertTrue("coward should be out at 60 dots", cowardGotOut)
     }
 
     @Test
-    fun `ghosts leave in order - pinky then inky then clyde`() {
+    fun `ghosts leave in order - ambusher then flanker then coward`() {
         val g = newGame()
         repeat(GameState.READY_TICKS) { g.tick() }
         val order = mutableListOf<GhostKind>()
         repeat(4000) {
             g.debugSetDotsEaten(minOf(60, g.dotsEaten + 1))
             g.tick()
-            for (kind in listOf(GhostKind.PINKY, GhostKind.INKY, GhostKind.CLYDE)) {
+            for (kind in listOf(GhostKind.AMBUSHER, GhostKind.FLANKER, GhostKind.COWARD)) {
                 if (!g.ghost(kind).mode.isInsideHouse && kind !in order) order += kind
             }
         }
-        assertEquals(listOf(GhostKind.PINKY, GhostKind.INKY, GhostKind.CLYDE), order)
+        assertEquals(listOf(GhostKind.AMBUSHER, GhostKind.FLANKER, GhostKind.COWARD), order)
     }
 
     @Test
@@ -86,13 +86,13 @@ class GhostHouseTest {
         g.debugSetDotsEaten(60)
         repeat(1200) { g.tick() }
 
-        val blinky = g.ghost(GhostKind.BLINKY)
+        val chaser = g.ghost(GhostKind.CHASER)
         repeat(1200) {
             g.tick()
-            if (blinky.mode != GhostMode.EATEN) {
+            if (chaser.mode != GhostMode.EATEN) {
                 assertFalse(
-                    "blinky drifted into the house while ${blinky.mode}",
-                    blinky.mode == GhostMode.IN_HOUSE,
+                    "chaser drifted into the house while ${chaser.mode}",
+                    chaser.mode == GhostMode.IN_HOUSE,
                 )
             }
         }

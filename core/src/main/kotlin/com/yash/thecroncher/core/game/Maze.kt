@@ -92,7 +92,7 @@ class Maze private constructor(
         val CRONCHER_START_TILE = TilePos(22, 14)
 
         /** Where the dog waits, on the lane directly above the house door. */
-        val BLINKY_START_TILE = TilePos(22, 8)
+        val HOUSE_EXIT_TILE = TilePos(22, 8)
 
         /** The middle of the ghost house, where the other three begin. */
         val HOUSE_CENTRE_TILE = TilePos(22, 11)
@@ -101,10 +101,10 @@ class Maze private constructor(
          * The corners each ghost retreats to during scatter. They sit outside the
          * maze, which is precisely why the ghosts circle rather than settle.
          */
-        val SCATTER_BLINKY = TilePos(43, 0)
-        val SCATTER_PINKY = TilePos(2, 0)
-        val SCATTER_INKY = TilePos(45, 21)
-        val SCATTER_CLYDE = TilePos(0, 21)
+        val SCATTER_CHASER = TilePos(43, 0)
+        val SCATTER_AMBUSHER = TilePos(2, 0)
+        val SCATTER_FLANKER = TilePos(45, 21)
+        val SCATTER_COWARD = TilePos(0, 21)
 
         private const val MAZE_RESOURCE = "/maze/croncher.txt"
 
