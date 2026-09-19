@@ -32,6 +32,9 @@ class GameScreen(
 
     private var gameOverHold = 0
 
+    /** The one screen where the player is actually doing something. */
+    override val keepsScreenAwake: Boolean get() = true
+
     override fun onEnter() {
         state.scores.highScore = settings.highScore
         state.startNewGame()

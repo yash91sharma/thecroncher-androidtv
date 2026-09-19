@@ -3,7 +3,6 @@ package com.yash.thecroncher
 import android.app.Activity
 import android.hardware.input.InputManager
 import android.os.Bundle
-import android.util.Log
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -44,16 +43,18 @@ class MainActivity : Activity(), InputManager.InputDeviceListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
         settings = GameSettings(AndroidSettingsStore(this))
         audioDevice = runCatching { AndroidAudioOut() }
-            .onFailure { Log.w(GameSurfaceView.TAG, "no audio available", it) }
+            .onFailure { Logs.warn("no audio available", it) }
             .getOrNull()
         audio.setEnabled(settings.soundEnabled)
 
         stack = ScreenStack(newMenuScreen())
         stack.onExitRequested = { finishAndRemoveTask() }
+        // Only live gameplay holds the panel on; a menu left up must let the TV
+        // dim and run its screensaver, or the wordmark burns into the OLED.
+        stack.onKeepScreenAwakeChanged = { awake -> runOnUiThread { keepScreenAwake(awake) } }
+        keepScreenAwake(stack.keepScreenAwake)
 
         adapter = AndroidInputAdapter(mapper, probe) { stack.handle(it) }
 
@@ -96,7 +97,7 @@ class MainActivity : Activity(), InputManager.InputDeviceListener {
     // ----------------------------------------------- controller connection --
 
     override fun onInputDeviceAdded(deviceId: Int) {
-        Log.i(GameSurfaceView.TAG, "controller connected: ${InputDevice.getDevice(deviceId)?.name}")
+        Logs.info { "controller connected: ${InputDevice.getDevice(deviceId)?.name}" }
     }
 
     override fun onInputDeviceChanged(deviceId: Int) = Unit
@@ -104,7 +105,7 @@ class MainActivity : Activity(), InputManager.InputDeviceListener {
     override fun onInputDeviceRemoved(deviceId: Int) {
         // Losing the pad mid-game would otherwise leave the croncher running into a wall
         // with nobody driving. Drop any held direction and pause.
-        Log.i(GameSurfaceView.TAG, "controller disconnected")
+        Logs.info { "controller disconnected" }
         mapper.reset()
         stack.handle(InputEvent.Press(Button.PAUSE))
     }
@@ -133,6 +134,11 @@ class MainActivity : Activity(), InputManager.InputDeviceListener {
         super.onWindowFocusChanged(hasFocus)
         // Android restores the system bars whenever focus returns.
         if (hasFocus) goFullscreen()
+    }
+
+    private fun keepScreenAwake(awake: Boolean) {
+        val flag = WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+        if (awake) window.addFlags(flag) else window.clearFlags(flag)
     }
 
     private fun goFullscreen() {

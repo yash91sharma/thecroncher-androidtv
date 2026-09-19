@@ -20,6 +20,7 @@ import com.yash.thecroncher.core.ui.screens.MenuScreen
 import com.yash.thecroncher.core.ui.screens.PauseScreen
 import com.yash.thecroncher.core.ui.screens.SettingsScreen
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -50,6 +51,18 @@ class ScreensTest {
     private fun draw(screen: Screen) = RecordingGfx().also { screen.render(it, theme, 0) }
 
     private val CatBreedSize = com.yash.thecroncher.core.theme.cats.CatBreed.SIZE
+
+    // --------------------------------------------------------- screen awake --
+
+    @Test
+    fun `only the game screen holds the television awake`() {
+        val game = GameScreen(settings, audio, SeededRng(1))
+        assertTrue(game.keepsScreenAwake)
+        assertFalse(menuScreen().keepsScreenAwake)
+        assertFalse(settingsScreen().keepsScreenAwake)
+        assertFalse(picker().keepsScreenAwake)
+        assertFalse(PauseScreen(game).keepsScreenAwake)
+    }
 
     // ------------------------------------------------------------- settings --
 

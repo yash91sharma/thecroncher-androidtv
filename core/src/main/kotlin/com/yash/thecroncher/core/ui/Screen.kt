@@ -34,6 +34,13 @@ sealed interface Transition {
  * them can be replaced without the others noticing.
  */
 interface Screen {
+    /**
+     * Whether the display must stay lit while this screen is on top. Only live
+     * gameplay says yes: a menu left on screen must let the television dim and
+     * run its screensaver, or a static wordmark ends up burnt into an OLED.
+     */
+    val keepsScreenAwake: Boolean get() = false
+
     fun onEnter() {}
     fun onExit() {}
 
@@ -55,6 +62,12 @@ class ScreenStack(root: Screen) {
     /** Called when a screen asks to quit; the host decides how. */
     var onExitRequested: () -> Unit = {}
 
+    /**
+     * Called with the new answer whenever [keepScreenAwake] changes, so the host
+     * can hold or release the display without polling every frame.
+     */
+    var onKeepScreenAwakeChanged: (Boolean) -> Unit = {}
+
     init {
         stack.addLast(root)
         root.onEnter()
@@ -64,7 +77,15 @@ class ScreenStack(root: Screen) {
 
     val depth: Int get() = stack.size
 
-    fun handle(event: InputEvent) = apply(current.handle(event))
+    /** Whether the screen on top wants the display held on. */
+    val keepScreenAwake: Boolean get() = current.keepsScreenAwake
+
+    private var lastKeepScreenAwake = keepScreenAwake
+
+    fun handle(event: InputEvent) {
+        apply(current.handle(event))
+        reportKeepScreenAwake()
+    }
 
     fun update(tick: Long) = current.update(tick)
 
@@ -75,6 +96,14 @@ class ScreenStack(root: Screen) {
         while (stack.isNotEmpty()) stack.removeLast().onExit()
         stack.addLast(root)
         root.onEnter()
+        reportKeepScreenAwake()
+    }
+
+    private fun reportKeepScreenAwake() {
+        val now = keepScreenAwake
+        if (now == lastKeepScreenAwake) return
+        lastKeepScreenAwake = now
+        onKeepScreenAwakeChanged(now)
     }
 
     private fun apply(transition: Transition) {

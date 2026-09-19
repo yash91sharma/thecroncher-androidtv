@@ -149,6 +149,45 @@ The Mac's key stays authorised, so the TV does not prompt again.
 
 `adb disconnect`
 
+## Release build (Google Play)
+
+Play takes an App Bundle signed with an **upload key**, which lives inside the
+sealed toolchain and never in the repo:
+
+```bash
+source env.sh
+mkdir -p .toolchain/keys
+keytool -genkeypair -v -keystore .toolchain/keys/upload.jks -alias upload \
+        -keyalg RSA -keysize 2048 -validity 10000
+```
+
+Then describe it in `.toolchain/keys/keystore.properties`:
+
+```properties
+storeFile=.toolchain/keys/upload.jks
+storePassword=...
+keyAlias=upload
+keyPassword=...
+```
+
+and build:
+
+```bash
+./gradlew bundleRelease     # -> app/build/outputs/bundle/release/app-release.aab
+./gradlew assembleRelease   # -> app/build/outputs/apk/release/app-release.apk (sideload test)
+```
+
+Release builds are shrunk and obfuscated by R8; upload
+`app/build/outputs/mapping/release/mapping.txt` alongside the bundle so Play
+can de-obfuscate crash reports. Bump `versionCode` in `app/build.gradle.kts`
+before every upload.
+
+**Back up `upload.jks` and its passwords somewhere outside this directory.**
+`rm -rf .toolchain` deletes them, and without the upload key you cannot ship an
+update until Play support resets it. If `keystore.properties` is missing the
+release build still succeeds, signed with the debug key, so it can be sideloaded
+for testing — Play will refuse it.
+
 ## Layout
 
 | Module | What |
@@ -196,15 +235,22 @@ row back to `SettingsScreen` — one `MenuItem`, as below.)
 Swapping the cucumber for a hair dryer is an entry there plus its grids in
 `CronchArt.kt`; the chase logic underneath never knows.
 
-### Change the launcher icon or the TV banner
+### Change the launcher icon, the TV banner or the Play Store art
 
-Both are generated from the game's own art, so they cannot drift from it:
+All of it is generated from the game's own art, so it cannot drift from it:
 
 ```bash
-python3 scripts/make-icons.py     # -> app/src/main/res/drawable/{ic_launcher,banner}.xml
+python3 scripts/make-icons.py
+#  -> app/src/main/res/drawable/ic_launcher.xml          launcher icon (vector)
+#  -> app/src/main/res/drawable-xhdpi/banner.png         TV home-screen banner, 320x180
+#  -> app/src/main/res/drawable-xxxhdpi/banner.png       same at 2x, for 4K panels
+#  -> store/icon-512.png                                 Play listing icon
+#  -> store/tv-banner-1280x720.png                       Play listing TV banner
+#  -> store/feature-graphic-1024x500.png                 Play listing feature graphic
 ```
 
-Edit the cat grid or the palette and run it again.
+Edit the face in `CatFaces.kt`, the colours in `GreyTabby.kt` or the theme, and
+run it again. `store/screenshots/` holds 1080p captures for the listing.
 
 ### Add a settings option
 

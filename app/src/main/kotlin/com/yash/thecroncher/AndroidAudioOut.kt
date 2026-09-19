@@ -4,7 +4,6 @@ import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
-import android.util.Log
 import com.yash.thecroncher.core.ports.AudioOut
 import com.yash.thecroncher.core.ports.SoundEvent
 import kotlin.math.PI
@@ -26,7 +25,7 @@ class AndroidAudioOut : AudioOut {
     init {
         for (event in SoundEvent.entries) {
             runCatching { tracks[event] = buildTrack(render(event)) }
-                .onFailure { Log.w(GameSurfaceView.TAG, "could not build audio for $event", it) }
+                .onFailure { Logs.warn("could not build audio for $event", it) }
         }
     }
 

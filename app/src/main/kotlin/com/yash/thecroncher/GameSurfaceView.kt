@@ -2,7 +2,6 @@ package com.yash.thecroncher
 
 import android.content.Context
 import android.graphics.Canvas
-import android.util.Log
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.WindowManager
@@ -63,11 +62,10 @@ class GameSurfaceView(
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
         viewport = Scaling.viewport(width, height)
-        Log.i(
-            TAG,
+        Logs.info {
             "surface ${width}x$height -> playfield scale x${viewport.scale} " +
-                "(${viewport.width}x${viewport.height} at ${viewport.x},${viewport.y})",
-        )
+                "(${viewport.width}x${viewport.height} at ${viewport.x},${viewport.y})"
+        }
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) = stop()
@@ -85,10 +83,10 @@ class GameSurfaceView(
             val mode = display.mode
             val w = mode.physicalWidth
             val h = mode.physicalHeight
-            Log.i(TAG, "display reports ${w}x$h; requesting it for the surface")
+            Logs.info { "display reports ${w}x$h; requesting it for the surface" }
             if (w > 0 && h > 0) holder.setFixedSize(w, h)
         } catch (e: Exception) {
-            Log.w(TAG, "could not query the display mode, using the default surface", e)
+            Logs.warn("could not query the display mode, using the default surface", e)
         }
     }
 
@@ -125,7 +123,13 @@ class GameSurfaceView(
 
     private fun drawFrame() {
         val surface = holder
-        if (!surface.surface.isValid) return
+        if (!surface.surface.isValid) {
+            // Nothing to draw on yet (between onResume and surfaceCreated). Posting
+            // a frame is what normally paces this loop to vsync, so without one it
+            // would spin a core flat out; yield until the surface arrives.
+            Thread.sleep(IDLE_SLEEP_MS)
+            return
+        }
 
         val canvas: Canvas = try {
             surface.lockHardwareCanvas()
@@ -147,13 +151,14 @@ class GameSurfaceView(
             framesThisSecond = 0
             fpsWindowStart = now
             // Occasional, so the log stays readable but the frame rate is provable.
-            if (++fpsReports % 5 == 0) Log.i(TAG, "fps=$fps tick=${loop.totalTicks}")
+            if (++fpsReports % 5 == 0) Logs.info { "fps=$fps tick=${loop.totalTicks}" }
         }
     }
 
     private var fpsReports = 0
 
-    companion object {
-        const val TAG = "CroncherTV"
+    private companion object {
+        /** Roughly half a frame: quick to notice the surface, cheap to wait. */
+        const val IDLE_SLEEP_MS = 8L
     }
 }

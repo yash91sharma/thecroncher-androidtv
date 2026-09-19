@@ -5,6 +5,7 @@ import com.yash.thecroncher.core.input.InputEvent
 import com.yash.thecroncher.core.ports.Gfx
 import com.yash.thecroncher.core.theme.Theme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -15,7 +16,11 @@ import org.junit.Test
  */
 class ScreenStackTest {
 
-    private class Probe(val name: String, var result: Transition = Transition.None) : Screen {
+    private class Probe(
+        val name: String,
+        var result: Transition = Transition.None,
+        override val keepsScreenAwake: Boolean = false,
+    ) : Screen {
         var entered = 0
         var exited = 0
         var handled = 0
@@ -140,6 +145,80 @@ class ScreenStackTest {
         }
         assertEquals(3, child.entered)
         assertEquals(3, child.exited)
+    }
+
+    // ---------------------------------------------------------- screen awake --
+    //
+    // A television must be allowed to dim and run its screensaver while the game
+    // sits on a static menu: on an OLED that is the difference between a game and
+    // a burn-in. Only a screen that is actually playing may hold the panel awake.
+
+    @Test
+    fun `a screen that does not ask to keep the screen awake does not`() {
+        val stack = ScreenStack(Probe("menu"))
+        assertFalse(stack.keepScreenAwake)
+    }
+
+    @Test
+    fun `the stack keeps the screen awake while the top screen asks for it`() {
+        val root = Probe("menu")
+        val game = Probe("game", keepsScreenAwake = true)
+        root.result = Transition.Push(game)
+
+        val stack = ScreenStack(root)
+        stack.handle(confirm)
+        assertTrue(stack.keepScreenAwake)
+    }
+
+    @Test
+    fun `a pause overlay on top of the game lets the screen sleep again`() {
+        val root = Probe("menu")
+        val game = Probe("game", keepsScreenAwake = true)
+        val pause = Probe("pause")
+        root.result = Transition.Push(game)
+        game.result = Transition.Push(pause)
+
+        val stack = ScreenStack(root)
+        stack.handle(confirm)   // menu -> game
+        stack.handle(confirm)   // game -> pause
+        assertFalse(stack.keepScreenAwake)
+    }
+
+    @Test
+    fun `the host is told only when the keep-awake answer actually changes`() {
+        val root = Probe("menu")
+        val game = Probe("game", keepsScreenAwake = true)
+        root.result = Transition.Push(game)
+        game.result = Transition.Pop
+
+        val stack = ScreenStack(root)
+        val reported = mutableListOf<Boolean>()
+        stack.onKeepScreenAwakeChanged = { reported += it }
+
+        stack.handle(confirm)   // menu pushes game
+        stack.handle(confirm)   // game pops
+        stack.handle(confirm)   // menu pushes game again
+        // A None transition must not re-report.
+        game.result = Transition.None
+        stack.handle(confirm)
+
+        assertEquals(listOf(true, false, true), reported)
+    }
+
+    @Test
+    fun `resetting the stack re-evaluates keep-awake`() {
+        val root = Probe("menu")
+        val game = Probe("game", keepsScreenAwake = true)
+        root.result = Transition.Push(game)
+
+        val stack = ScreenStack(root)
+        val reported = mutableListOf<Boolean>()
+        stack.onKeepScreenAwakeChanged = { reported += it }
+        stack.handle(confirm)
+        stack.reset(Probe("menu again"))
+
+        assertFalse(stack.keepScreenAwake)
+        assertEquals(listOf(true, false), reported)
     }
 
     private companion object {

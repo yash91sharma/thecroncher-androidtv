@@ -17,6 +17,7 @@
 
     <application
         android:allowBackup="true"
+        android:appCategory="game"
         android:banner="@drawable/banner"
         android:icon="@drawable/ic_launcher"
         android:isGame="true"
@@ -28,7 +29,6 @@
             android:configChanges="orientation|screenSize|keyboard|keyboardHidden|navigation|uiMode"
             android:exported="true"
             android:launchMode="singleTask"
-            android:screenOrientation="landscape"
             android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen">
 
             <intent-filter>
