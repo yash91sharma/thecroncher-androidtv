@@ -70,7 +70,12 @@ class MenuScreen(
         val cx = Layout.SCREEN_WIDTH / 2
         g.drawText(Strings.TITLE, cx, Layout.MARGIN + 6, theme.menu.title, Align.CENTER, TITLE_SMALL_SCALE)
         g.drawText(Strings.TITLE_SECOND_LINE, cx, 28, theme.menu.title, Align.CENTER, TITLE_SCALE)
-        g.drawText(Strings.TAGLINE, cx, 54, theme.menu.footer, Align.CENTER)
+        for ((i, line) in Strings.TAGLINE.withIndex()) {
+            g.drawText(
+                line, cx, Layout.TAGLINE_Y + i * Layout.TAGLINE_LINE_SPACING,
+                theme.menu.footer, Align.CENTER,
+            )
+        }
 
         // The cat runs a lap of the screen, pursued as ever.
         val period = Layout.SCREEN_WIDTH + 64

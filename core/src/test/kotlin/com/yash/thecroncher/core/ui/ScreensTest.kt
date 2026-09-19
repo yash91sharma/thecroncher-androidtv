@@ -4,6 +4,7 @@ import com.yash.thecroncher.core.game.Difficulties
 import com.yash.thecroncher.core.game.Direction
 import com.yash.thecroncher.core.input.Button
 import com.yash.thecroncher.core.input.InputEvent
+import com.yash.thecroncher.core.ports.Align
 import com.yash.thecroncher.core.ports.InMemorySettingsStore
 import com.yash.thecroncher.core.ports.RecordingAudioOut
 import com.yash.thecroncher.core.ports.SeededRng
@@ -107,6 +108,27 @@ class ScreensTest {
         assertTrue(Strings.PLAY in texts)
         assertTrue(Strings.SETTINGS in texts)
         assertTrue(Strings.EXIT in texts)
+    }
+
+    @Test
+    fun `the title screen draws every line of the tagline, centred, one under the other`() {
+        val tagline = draw(menuScreen()).texts.filter { it.text in Strings.TAGLINE }
+        assertEquals(Strings.TAGLINE, tagline.map { it.text })
+        for ((i, line) in tagline.withIndex()) {
+            assertEquals(Align.CENTER, line.align)
+            assertEquals(Layout.SCREEN_WIDTH / 2, line.x)
+            assertEquals(Layout.TAGLINE_Y + i * Layout.TAGLINE_LINE_SPACING, line.y)
+        }
+    }
+
+    @Test
+    fun `every tagline line fits inside the safe area`() {
+        for (line in Strings.TAGLINE) {
+            assertTrue(
+                "'$line' is ${Font.measure(line)}px wide",
+                Font.measure(line) <= Layout.SCREEN_WIDTH - 2 * Layout.MARGIN,
+            )
+        }
     }
 
     @Test

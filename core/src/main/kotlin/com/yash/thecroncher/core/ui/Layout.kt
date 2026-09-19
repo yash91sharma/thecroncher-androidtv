@@ -46,6 +46,12 @@ object Layout {
     const val LIVES_SPACING = 16
     const val TOY_RIGHT_X = SCREEN_WIDTH - MAZE_ORIGIN_X
 
+    // --- title screen ---
+    /** First line of the tagline; it sits just under the big wordmark. */
+    const val TAGLINE_Y = 54
+    /** One glyph row plus a three-pixel gap between tagline lines. */
+    const val TAGLINE_LINE_SPACING = 10
+
     // --- centre messages ---
     const val MESSAGE_CENTRE_X = SCREEN_WIDTH / 2
     const val READY_Y = MAZE_ORIGIN_Y + 16 * TILE + 1

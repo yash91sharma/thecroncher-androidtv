@@ -28,6 +28,13 @@ object Strings {
 
     const val CONTROLLER_DISCONNECTED = "CONTROLLER DISCONNECTED"
 
-    /** The subtitle under the wordmark on the title screen. */
-    const val TAGLINE = "EAT THE TREATS   DODGE THE REST"
+    /**
+     * The subtitle under the wordmark on the title screen, one entry per line:
+     * the font is 6px per character, so a sentence this long cannot fit the safe
+     * area on a single row.
+     */
+    val TAGLINE = listOf(
+        "CAN YOUR CAT EAT ALL THE TREATS",
+        "BEFORE THE FOES CATCH IT?",
+    )
 }
