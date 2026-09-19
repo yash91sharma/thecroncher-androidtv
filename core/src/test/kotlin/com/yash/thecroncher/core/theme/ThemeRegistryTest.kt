@@ -1,5 +1,6 @@
 package com.yash.thecroncher.core.theme
 
+import com.yash.thecroncher.core.theme.cats.CatRegistry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -73,6 +74,21 @@ class ThemeRegistryTest {
     }
 
     @Test
+    fun `a theme can be re-dressed for any cat and keeps everything else`() {
+        val base = ThemeRegistry.default
+        for (cat in CatRegistry.all) {
+            val dressed = base.forCat(cat)
+            assertEquals(base.id, dressed.id)
+            assertEquals(base.palette, dressed.palette)
+            assertEquals(base.menu, dressed.menu)
+            assertTrue(
+                "${cat.id} is not what ${base.id}.forCat draws",
+                cat.fur in dressed.sprites.sprite(SpriteId.CAT, 0).pixels,
+            )
+        }
+    }
+
+    @Test
     fun `lookup by id works and unknown ids fall back to the default`() {
         val first = ThemeRegistry.all.first()
         assertNotNull(ThemeRegistry.byId(first.id))
@@ -89,10 +105,12 @@ class ThemeRegistryTest {
                 listOf(dogFur, vacuumBody, sprayBottle, cucumberBody)
             }
             assertEquals("${theme.id} reuses a foe colour", 4, bodies.distinct().size)
-            assertTrue(
-                "${theme.id} paints a foe the same grey as the cat",
-                theme.palette.catFur !in bodies,
-            )
+            for (cat in CatRegistry.all) {
+                assertTrue(
+                    "${theme.id} paints a foe the same colour as the ${cat.id}",
+                    cat.fur !in bodies,
+                )
+            }
         }
     }
 

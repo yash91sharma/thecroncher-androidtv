@@ -11,6 +11,7 @@ object Strings {
     const val PAUSED = "PAUSED"
 
     const val PLAY = "PLAY"
+    const val SELECT_MY_CAT = "SELECT MY CAT"
     const val SETTINGS = "SETTINGS"
     const val EXIT = "EXIT"
 

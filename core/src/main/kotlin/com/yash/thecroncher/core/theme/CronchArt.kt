@@ -10,9 +10,8 @@ package com.yash.thecroncher.core.theme
  *
  * The ink alphabet:
  * ```
- *   .    nothing        F D L  cat fur, tabby stripe, muzzle
- *   E N  ear, nose      Y P    eye, pupil
- *   M i  mouth, whisker/tooth/glint
+ *   .    nothing        i      whisker/tooth/glint
+ *   F D L E N Y P M     the cat, see `cats/CatBreed`
  *   g h  dog fur, dog ears     s t  snout, tongue
  *   v w  vacuum body, shading  u r   hose, power light
  *   b c  bottle, bottle shade  q     water
@@ -24,49 +23,8 @@ package com.yash.thecroncher.core.theme
  */
 internal object CronchArt {
 
-    // ---------------------------------------------------- the croncher --
-
-    /** He always looks at the player; the walk is a one-pixel bounce. */
-
-    val CAT_FACE = listOf(
-        "................",
-        "...F........F...",
-        "..FEF......FEF..",
-        "..FEEF....FEEF..",
-        "..FFFFFFFFFFFF..",
-        "..FFDFFDDFFDFF..",
-        ".FFFDDFFFFDDFFF.",
-        ".FiYYFFFFFFYYiF.",
-        ".FYPYFFFFFFYPYF.",
-        "..FFFFFNNFFFFF..",
-        "iiFFFFFMMFFFFFii",
-        "..FFFFMFFMFFFF..",
-        "iiFFFFFFFFFFFFii",
-        "..FFFFFFFFFFFF..",
-        "...FFFFFFFFFF...",
-        "....FFFFFFFF....",
-    )
-
-    /** Dizzy eyes, painted over the cat as it faints. */
-
-    val CAT_DIZZY = listOf(
-        "................",
-        "................",
-        "................",
-        "................",
-        "................",
-        "................",
-        "FFPFPFFFFFFPFPFF",
-        "FFFPFFFFFFFFPFFF",
-        "FFPFPFFFFFFPFPFF",
-        "................",
-        "................",
-        "................",
-        "................",
-        "................",
-        "................",
-        "................",
-    )
+    // The croncher himself lives in `cats/CatFaces`: the player picks his breed,
+    // so his face and colours are not the theme's to decide.
 
     // ------------------------------------------------------- the fears --
 

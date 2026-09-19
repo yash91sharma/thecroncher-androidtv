@@ -60,7 +60,9 @@ class MainActivity : Activity(), InputManager.InputDeviceListener {
         surface = GameSurfaceView(
             context = this,
             onTick = { stack.update(it) },
-            onRender = { ctx -> stack.render(ctx.gfx, ctx.theme, ctx.tick) },
+            // The theme is asked for each frame because it wears the chosen cat,
+            // and the picker changes that while the surface is running.
+            onRender = { ctx -> stack.render(ctx.gfx, settings.theme, ctx.tick) },
         )
         surface.theme = settings.theme
         setContentView(surface)

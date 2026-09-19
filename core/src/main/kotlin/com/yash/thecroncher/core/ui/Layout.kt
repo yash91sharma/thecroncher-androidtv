@@ -43,7 +43,8 @@ object Layout {
     // --- bottom HUD, sitting between the maze and the margin ---
     const val LIVES_Y = MAZE_ORIGIN_Y + MAZE_PIXEL_HEIGHT + 2
     const val LIVES_LEFT_X = MAZE_ORIGIN_X
-    const val LIVES_SPACING = 16
+    /** Two pixels more than a face, so the reserve cats sit apart rather than fused. */
+    const val LIVES_SPACING = 18
     const val TOY_RIGHT_X = SCREEN_WIDTH - MAZE_ORIGIN_X
 
     // --- title screen ---
@@ -51,6 +52,18 @@ object Layout {
     const val TAGLINE_Y = 54
     /** One glyph row plus a three-pixel gap between tagline lines. */
     const val TAGLINE_LINE_SPACING = 10
+
+    // --- the cat picker: a grid of faces, three to a row ---
+    const val CAT_PICKER_COLUMNS = 3
+    /** Faces are shown at twice life size so the breeds can be compared from a sofa. */
+    const val CAT_PICKER_SCALE = 2
+    /** Cells are centred on the screen's middle column; this is the pitch between them. */
+    const val CAT_PICKER_CELL_WIDTH = 72
+    const val CAT_PICKER_ROW_HEIGHT = 56
+    /** Centre line of the first row of faces; the second sits one row height below. */
+    const val CAT_PICKER_FIRST_ROW_Y = 92
+    /** The cursor rule sits this far below a face's centre. */
+    const val CAT_PICKER_RULE_OFFSET_Y = 20
 
     // --- centre messages ---
     const val MESSAGE_CENTRE_X = SCREEN_WIDTH / 2

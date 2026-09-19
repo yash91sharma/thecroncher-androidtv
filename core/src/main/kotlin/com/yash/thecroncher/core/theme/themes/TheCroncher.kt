@@ -8,25 +8,16 @@ import com.yash.thecroncher.core.theme.SpritePalette
 import com.yash.thecroncher.core.theme.Theme
 
 /**
- * The house at night: violet skirting boards, a grey tabby, and four things he
- * would rather not meet.
+ * The house at night: violet skirting boards and four things a cat would rather
+ * not meet. The cat himself is whichever breed the player picked, in `cats/`.
  *
- * Every colour in the game is in this file. Two rules shape the choices:
+ * Every other colour in the game is in this file. Two rules shape the choices:
  *  - the four foes must be tellable apart in a glance, so their bodies are as far
- *    from each other in hue as they are from the cat's grey;
+ *    from each other in hue as they are from every cat's fur;
  *  - nothing that sits still — the score, the lives — is pure white, because this
  *    is going on an OLED and static white is how a panel gets burned.
  */
 val TheCroncherPalette = SpritePalette(
-    catFur = 0xFFA6A6AE.toInt(),
-    catStripe = 0xFF6A6A74.toInt(),
-    catMuzzle = 0xFFDCDCE4.toInt(),
-    catEarInner = 0xFFF2A0BC.toInt(),
-    catNose = 0xFFF48FB1.toInt(),
-    catEye = 0xFF8BE86A.toInt(),
-    catPupil = 0xFF20202A.toInt(),
-    catMouth = 0xFF6E2438.toInt(),
-
     dogFur = 0xFFB5773C.toInt(),
     dogEars = 0xFF7A4A20.toInt(),
     dogSnout = 0xFFE8CFA8.toInt(),

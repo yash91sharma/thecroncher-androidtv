@@ -117,6 +117,36 @@ class PixelArtTest {
         assertNotEquals(once.toList(), PixelArt.dissolved(base, 0.6).pixels.toList())
     }
 
+    @Test
+    fun `padding adds empty rows around the art without moving it`() {
+        val base = PixelArt.sprite(square, ink)
+        val roomy = PixelArt.padded(base, top = 1, bottom = 2)
+        assertEquals(4, roomy.width)
+        assertEquals(7, roomy.height)
+        assertEquals(Sprite.TRANSPARENT, roomy.pixelAt(0, 0))
+        assertEquals(RED, roomy.pixelAt(0, 1))
+        assertEquals(BLUE, roomy.pixelAt(2, 3))
+        assertEquals(Sprite.TRANSPARENT, roomy.pixelAt(0, 6))
+        assertTrue(
+            "padding by nothing must change nothing",
+            PixelArt.padded(base, top = 0, bottom = 0).pixels.contentEquals(base.pixels),
+        )
+    }
+
+    @Test
+    fun `scaling blows every pixel up into a whole block, never blurring`() {
+        val base = PixelArt.sprite(square, ink)
+        val big = PixelArt.scaled(base, 3)
+        assertEquals(12, big.width)
+        assertEquals(12, big.height)
+        for (y in 0 until 12) {
+            for (x in 0 until 12) {
+                assertEquals("pixel $x,$y", base.pixelAt(x / 3, y / 3), big.pixelAt(x, y))
+            }
+        }
+        assertTrue("scale 1 is the identity", PixelArt.scaled(base, 1).pixels.contentEquals(base.pixels))
+    }
+
     private companion object {
         const val RED = 0xFFFF0000.toInt()
         const val BLUE = 0xFF0000FF.toInt()

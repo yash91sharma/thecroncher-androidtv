@@ -4,24 +4,15 @@ package com.yash.thecroncher.core.theme
  * Every colour the art is drawn in, named by what it *is* rather than what it
  * looks like.
  *
- * The grids in [CronchArt] say "fur", "tongue", "water"; this says what those
+ * The grids in [CronchArt] say "tongue", "water", "yarn"; this says what those
  * are. Nothing outside a theme file is allowed to name a colour, so restyling the
- * whole cast — a ginger cat, a night-time palette — is one of these, with no
- * change to a single grid or a single call site.
+ * whole cast — a night-time palette — is one of these, with no change to a single
+ * grid or a single call site. The cat is the exception: the player chooses him,
+ * so his colours live with his breed in `cats/`.
  *
  * Colours are packed ARGB and must be fully opaque; `ThemeRegistryTest` checks it.
  */
 data class SpritePalette(
-    // --- the croncher ---
-    val catFur: Int,
-    val catStripe: Int,
-    val catMuzzle: Int,
-    val catEarInner: Int,
-    val catNose: Int,
-    val catEye: Int,
-    val catPupil: Int,
-    val catMouth: Int,
-
     // --- the dog ---
     val dogFur: Int,
     val dogEars: Int,
@@ -87,8 +78,6 @@ data class SpritePalette(
 
     /** Maps the ink alphabet of [CronchArt] onto this palette. */
     val ink: Map<Char, Int> = mapOf(
-        'F' to catFur, 'D' to catStripe, 'L' to catMuzzle, 'E' to catEarInner,
-        'N' to catNose, 'Y' to catEye, 'P' to catPupil, 'M' to catMouth,
         'g' to dogFur, 'h' to dogEars, 's' to dogSnout, 't' to dogTongue,
         'v' to vacuumBody, 'w' to vacuumShade, 'u' to vacuumHose, 'r' to vacuumLight,
         'b' to sprayBottle, 'c' to sprayShade, 'q' to sprayWater,
@@ -106,14 +95,6 @@ data class SpritePalette(
 
     /** Every slot with its name, so a forgotten colour fails a test not a TV. */
     fun allColours(): List<Pair<String, Int>> = listOf(
-        "catFur" to catFur,
-        "catStripe" to catStripe,
-        "catMuzzle" to catMuzzle,
-        "catEarInner" to catEarInner,
-        "catNose" to catNose,
-        "catEye" to catEye,
-        "catPupil" to catPupil,
-        "catMouth" to catMouth,
         "dogFur" to dogFur,
         "dogEars" to dogEars,
         "dogSnout" to dogSnout,

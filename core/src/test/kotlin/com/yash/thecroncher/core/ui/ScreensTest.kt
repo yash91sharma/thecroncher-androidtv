@@ -9,7 +9,12 @@ import com.yash.thecroncher.core.ports.InMemorySettingsStore
 import com.yash.thecroncher.core.ports.RecordingAudioOut
 import com.yash.thecroncher.core.ports.SeededRng
 import com.yash.thecroncher.core.support.RecordingGfx
+import com.yash.thecroncher.core.theme.SpriteId
 import com.yash.thecroncher.core.theme.ThemeRegistry
+import com.yash.thecroncher.core.theme.cats.CatRegistry
+import com.yash.thecroncher.core.theme.cats.OrangeTabby
+import com.yash.thecroncher.core.theme.cats.Siamese
+import com.yash.thecroncher.core.ui.screens.CatPickerScreen
 import com.yash.thecroncher.core.ui.screens.GameScreen
 import com.yash.thecroncher.core.ui.screens.MenuScreen
 import com.yash.thecroncher.core.ui.screens.PauseScreen
@@ -41,7 +46,10 @@ class ScreensTest {
 
     private fun menuScreen() = MenuScreen(settings, audio, SeededRng(1))
     private fun settingsScreen() = SettingsScreen(settings, audio)
+    private fun picker() = CatPickerScreen(settings)
     private fun draw(screen: Screen) = RecordingGfx().also { screen.render(it, theme, 0) }
+
+    private val CatBreedSize = com.yash.thecroncher.core.theme.cats.CatBreed.SIZE
 
     // ------------------------------------------------------------- settings --
 
@@ -103,11 +111,11 @@ class ScreensTest {
     // ----------------------------------------------------------- main menu --
 
     @Test
-    fun `the main menu offers play, settings and exit`() {
+    fun `the main menu offers play, select my cat, settings and exit, in that order`() {
         val texts = draw(menuScreen()).textStrings()
-        assertTrue(Strings.PLAY in texts)
-        assertTrue(Strings.SETTINGS in texts)
-        assertTrue(Strings.EXIT in texts)
+        val items = texts.filter { it in listOf(Strings.PLAY, Strings.SELECT_MY_CAT, Strings.SETTINGS, Strings.EXIT) }
+        assertEquals(listOf(Strings.PLAY, Strings.SELECT_MY_CAT, Strings.SETTINGS, Strings.EXIT), items)
+        assertEquals("SELECT MY CAT", Strings.SELECT_MY_CAT)
     }
 
     @Test
@@ -132,13 +140,120 @@ class ScreensTest {
     }
 
     @Test
-    fun `play starts a game and settings opens the settings`() {
+    fun `play starts a game, select my cat opens the picker, settings opens the settings`() {
         val m = menuScreen()
         assertTrue((m.handle(confirm) as Transition.Push).screen is GameScreen)
 
         val m2 = menuScreen()
         m2.handle(down)
-        assertTrue((m2.handle(confirm) as Transition.Push).screen is SettingsScreen)
+        assertTrue((m2.handle(confirm) as Transition.Push).screen is CatPickerScreen)
+
+        val m3 = menuScreen()
+        m3.handle(down); m3.handle(down)
+        assertTrue((m3.handle(confirm) as Transition.Push).screen is SettingsScreen)
+    }
+
+    // ---------------------------------------------------------- cat picker --
+
+    @Test
+    fun `the picker opens on the cat currently chosen`() {
+        assertEquals(CatRegistry.default, picker().highlighted)
+        settings.cat = Siamese
+        assertEquals(Siamese, picker().highlighted)
+    }
+
+    @Test
+    fun `left and right walk the roster in order and wrap at the ends`() {
+        val p = picker()
+        p.handle(right)
+        assertEquals(CatRegistry.all[1], p.highlighted)
+        p.handle(left); p.handle(left)
+        assertEquals("left from the first cat wraps to the last", CatRegistry.all.last(), p.highlighted)
+        p.handle(right)
+        assertEquals(CatRegistry.all.first(), p.highlighted)
+    }
+
+    @Test
+    fun `up and down move a whole row of three`() {
+        val p = picker()
+        p.handle(down)
+        assertEquals(CatRegistry.all[3], p.highlighted)
+        p.handle(down)
+        assertEquals("down from the bottom row wraps to the top", CatRegistry.all[0], p.highlighted)
+        p.handle(right); p.handle(up)
+        assertEquals(CatRegistry.all[4], p.highlighted)
+    }
+
+    @Test
+    fun `confirm keeps the highlighted cat and closes the picker`() {
+        val p = picker()
+        p.handle(right)
+        assertEquals("nothing is written until A is pressed", CatRegistry.default, settings.cat)
+        assertEquals(Transition.Pop, p.handle(confirm))
+        assertEquals(OrangeTabby, settings.cat)
+    }
+
+    @Test
+    fun `back closes the picker without changing the cat`() {
+        val p = picker()
+        p.handle(right); p.handle(down)
+        assertEquals(Transition.Pop, p.handle(back))
+        assertEquals(CatRegistry.default, settings.cat)
+    }
+
+    @Test
+    fun `the picker shows every face, twice life size, in two rows of three`() {
+        val gfx = draw(picker())
+        assertTrue(Strings.SELECT_MY_CAT in gfx.textStrings())
+
+        val faces = gfx.sprites
+        assertEquals(CatRegistry.all.size, faces.size)
+        for (face in faces) {
+            assertEquals(CatBreedSize * Layout.CAT_PICKER_SCALE, face.sprite.width)
+        }
+        val columns = faces.map { it.x }.distinct()
+        val rows = faces.map { it.y }.distinct()
+        assertEquals(3, columns.size)
+        assertEquals(2, rows.size)
+        // The first three read left to right on the top row.
+        assertEquals(columns.sorted(), faces.take(3).map { it.x })
+        assertEquals(rows.min(), faces[0].y)
+        assertEquals(rows.max(), faces[3].y)
+    }
+
+    @Test
+    fun `the picker draws each cat in its own colours, whichever is chosen`() {
+        settings.cat = Siamese
+        val faces = draw(picker()).sprites
+        for ((i, cat) in CatRegistry.all.withIndex()) {
+            assertTrue("${cat.id} is not drawn as itself", cat.fur in faces[i].sprite.pixels)
+        }
+    }
+
+    @Test
+    fun `the highlighted cat is marked with the menu cursor rule`() {
+        val p = picker()
+        p.handle(right)
+        val gfx = draw(p)
+        val face = gfx.sprites[1]
+        val centreX = face.x + face.sprite.width / 2
+        val rule = gfx.rects.filter { it.color == theme.menu.cursor }
+        assertTrue("no cursor rule drawn", rule.isNotEmpty())
+        assertTrue(
+            "the rule is not under the highlighted cat",
+            rule.any { centreX in it.x until it.x + it.w && it.y > face.y },
+        )
+    }
+
+    @Test
+    fun `the picker stays inside the safe area`() {
+        val gfx = draw(picker())
+        for (face in gfx.sprites) {
+            assertTrue(face.x >= Layout.MARGIN)
+            assertTrue(face.y >= Layout.MARGIN)
+            assertTrue(face.x + face.sprite.width <= Layout.SCREEN_WIDTH - Layout.MARGIN)
+            assertTrue(face.y + face.sprite.height <= Layout.SCREEN_HEIGHT - Layout.MARGIN)
+        }
     }
 
     @Test
@@ -210,6 +325,45 @@ class ScreensTest {
         val gfx = draw(paused)
         assertTrue("the maze should still be visible behind the menu", gfx.sprites.size > 100)
         assertTrue(Strings.PAUSED in gfx.textStrings())
+    }
+
+    // ------------------------------------------------------------- the cat --
+
+    @Test
+    fun `a fresh install plays as the grey tabby`() {
+        assertEquals(CatRegistry.default, settings.cat)
+        assertEquals("grey-tabby", settings.cat.id)
+    }
+
+    @Test
+    fun `the chosen cat is written through and survives a reload`() {
+        settings.cat = OrangeTabby
+        assertEquals(OrangeTabby, GameSettings(store).cat)
+    }
+
+    @Test
+    fun `an unknown stored cat falls back to the default rather than failing`() {
+        store.putString("cat", "no-such-cat")
+        assertEquals(CatRegistry.default, settings.cat)
+    }
+
+    @Test
+    fun `the theme every screen draws with wears the chosen cat`() {
+        fun fur() = settings.theme.sprites.sprite(SpriteId.CAT, 0).pixels.toSet()
+        assertTrue(CatRegistry.default.fur in fur())
+        settings.cat = OrangeTabby
+        assertTrue(OrangeTabby.fur in fur())
+        assertTrue(CatRegistry.default.fur !in fur())
+        assertEquals("only the cat changes", ThemeRegistry.default.id, settings.theme.id)
+    }
+
+    @Test
+    fun `asking for the theme twice for the same cat gives the same object`() {
+        // It is asked for every frame; rebuilding the sprite cache each time
+        // would throw away every rasterised sprite sixty times a second.
+        assertSame(settings.theme, settings.theme)
+        settings.cat = OrangeTabby
+        assertSame(settings.theme, settings.theme)
     }
 
     // -------------------------------------------------------- high scores --

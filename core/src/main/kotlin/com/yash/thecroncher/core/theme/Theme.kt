@@ -1,5 +1,7 @@
 package com.yash.thecroncher.core.theme
 
+import com.yash.thecroncher.core.theme.cats.CatBreed
+
 /** Colours are packed ARGB ints. Every slot must be fully opaque. */
 data class MazeColors(
     val wall: Int,
@@ -42,6 +44,9 @@ data class Theme(
     val palette: SpritePalette,
     val sprites: SpriteSource,
 ) {
+    /** This theme, drawn with the player's chosen cat. Nothing else changes. */
+    fun forCat(cat: CatBreed): Theme = copy(sprites = sprites.forCat(cat))
+
     /**
      * Every colour slot, paired with its name. Used by the tests to prove a theme
      * has no forgotten (and therefore invisible) entries — a transparent maze is a

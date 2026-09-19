@@ -21,7 +21,7 @@ import com.yash.thecroncher.core.ui.Screen
 import com.yash.thecroncher.core.ui.Strings
 import com.yash.thecroncher.core.ui.Transition
 
-/** The title screen: PLAY, SETTINGS, EXIT. */
+/** The title screen: PLAY, SELECT MY CAT, SETTINGS, EXIT. */
 class MenuScreen(
     private val settings: GameSettings,
     private val audio: AudioOut,
@@ -34,6 +34,9 @@ class MenuScreen(
         items = listOf(
             MenuItem(Strings.PLAY, ItemKind.Action {
                 Transition.Push(GameScreen(settings, audio, rng))
+            }),
+            MenuItem(Strings.SELECT_MY_CAT, ItemKind.Action {
+                Transition.Push(CatPickerScreen(settings))
             }),
             MenuItem(Strings.SETTINGS, ItemKind.Action {
                 Transition.Push(SettingsScreen(settings, audio, probe))

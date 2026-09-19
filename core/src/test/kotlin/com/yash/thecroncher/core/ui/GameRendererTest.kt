@@ -158,6 +158,18 @@ class GameRendererTest {
     }
 
     @Test
+    fun `the reserve cats do not touch each other`() {
+        // The faces fill their sixteen columns, so a pitch of exactly sixteen
+        // fuses neighbouring lives into one long cat.
+        val g = game()
+        val icon = theme.sprites.sprite(SpriteId.LIFE_ICON, 0)
+        val xs = draw(g, 0).sprites.filter { it.sprite === icon }.map { it.x }.sorted()
+        for (i in 1 until xs.size) {
+            assertTrue("lives ${i - 1} and $i touch", xs[i] - xs[i - 1] > icon.width)
+        }
+    }
+
+    @Test
     fun `nothing is drawn outside the screen bounds`() {
         val g = game()
         repeat(GameState.READY_TICKS + 300) { g.tick() }

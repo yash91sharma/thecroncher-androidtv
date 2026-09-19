@@ -66,6 +66,34 @@ object PixelArt {
         return Sprite(sprite.width, sprite.height, pixels)
     }
 
+    /** Adds empty rows above and below, so art that fills its box has room to hop. */
+    fun padded(sprite: Sprite, top: Int, bottom: Int): Sprite {
+        require(top >= 0 && bottom >= 0) { "padding cannot be negative" }
+        if (top == 0 && bottom == 0) return sprite
+        val height = sprite.height + top + bottom
+        val pixels = IntArray(sprite.width * height)
+        sprite.pixels.copyInto(pixels, destinationOffset = top * sprite.width)
+        return Sprite(sprite.width, height, pixels)
+    }
+
+    /**
+     * Every pixel becomes a [factor]-wide block. Whole pixels only — this is how
+     * the picker shows a face at twice the size without a hint of blur.
+     */
+    fun scaled(sprite: Sprite, factor: Int): Sprite {
+        require(factor >= 1) { "scale must be at least 1" }
+        if (factor == 1) return sprite
+        val width = sprite.width * factor
+        val height = sprite.height * factor
+        val pixels = IntArray(width * height)
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                pixels[y * width + x] = sprite.pixelAt(x / factor, y / factor)
+            }
+        }
+        return Sprite(width, height, pixels)
+    }
+
     /** The shape only, in one flat colour. How a foe turns harmless. */
     fun silhouette(sprite: Sprite, colour: Int): Sprite {
         val pixels = IntArray(sprite.pixels.size)

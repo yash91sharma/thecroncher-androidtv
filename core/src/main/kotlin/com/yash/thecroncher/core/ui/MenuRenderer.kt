@@ -35,14 +35,7 @@ object MenuRenderer {
         footer: String? = null,
         clearBackground: Boolean = true,
     ) {
-        // The pause overlay draws the frozen game first and must not wipe it.
-        if (clearBackground) g.clear(theme.menu.background)
-
-        model.title?.let {
-            g.drawText(
-                it, Layout.SCREEN_WIDTH / 2, TITLE_Y, theme.menu.title, Align.CENTER, TITLE_SCALE,
-            )
-        }
+        frame(g, theme, model.title, footer, clearBackground)
 
         // Centre the block vertically so menus of different lengths stay balanced.
         val firstItemY = ITEMS_CENTRE_Y - (model.items.size * ITEM_SPACING) / 2
@@ -73,6 +66,29 @@ object MenuRenderer {
                     else LABEL_X + Font.measure(item.label) + 6
                 g.fillRect(LABEL_X, y + Font.GLYPH_HEIGHT + 1, ruleEnd - LABEL_X, 1, theme.menu.cursor)
             }
+        }
+
+    }
+
+    /**
+     * The chrome every menu-like screen shares: background, title across the top,
+     * hint line along the bottom. A screen whose middle is not a list of items —
+     * the cat picker — draws its own middle inside this.
+     */
+    fun frame(
+        g: Gfx,
+        theme: Theme,
+        title: String?,
+        footer: String?,
+        clearBackground: Boolean = true,
+    ) {
+        // The pause overlay draws the frozen game first and must not wipe it.
+        if (clearBackground) g.clear(theme.menu.background)
+
+        title?.let {
+            g.drawText(
+                it, Layout.SCREEN_WIDTH / 2, TITLE_Y, theme.menu.title, Align.CENTER, TITLE_SCALE,
+            )
         }
 
         footer?.let {
